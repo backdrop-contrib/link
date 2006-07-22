@@ -1,0 +1,425 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Defines simple link field types.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function link_help($section) {
+  switch ($section) {
+    case 'admin/modules#description':
+      return t('Defines simple link field types. <em>Note: Requires content.module.</em>');
+  }
+}
+
+/**
+ * Implementation of hook_field_info().
+ */
+function link_field_info() {
+  return array(
+    'link' => array('label' => 'Link'),
+  );
+}
+
+/**
+ * Implementation of hook_field_settings().
+ */
+function link_field_settings($op, $field) {
+  switch ($op) {
+    case 'form':
+      $form = array();
+      $options = array(
+        'default' => t('Default (no target attribute)'),
+        '_top' => t('Open link in window root'),
+        '_blank' => t('Open link in new window'),
+        'user' => t('Allow the user to choose'),
+      );
+      $form['attributes'] = array (
+      	'#tree' => true,
+      );
+      $form['attributes']['target'] = array(
+        '#type' => 'radios',
+        '#title' => t('Link Target'),
+        '#default_value' => $field['attributes']['target'] ? $field['attributes']['target'] : 'default',
+        '#options' => $options,
+      );
+      return $form;
+
+    case 'save':
+      return array('attributes');
+  }
+}
+
+/**
+ * Implementation of hook_field().
+ */
+function link_field($op, &$node, $field, &$node_field, $teaser, $page) {
+  switch ($op) {
+    case 'load':
+      switch($field['type']) {
+        case 'link':
+          $result = db_query("SELECT field_url, field_title, attributes FROM {node_field_link_data} WHERE vid = %d AND field_name = '%s' ORDER BY delta", $node->vid, $field['field_name']);
+          if ($field['multiple']) {
+            $values = array();
+            while ($value = db_fetch_array($result)) {
+              $values[] = array('value' => array('link' => $value['field_url'], 'title' => $value['field_title'], 'attributes' => unserialize($value['attributes'])));
+            }
+            $additions = array($field['field_name'] => $values);
+          }
+          else {
+            $dbvalue = db_fetch_array($result);
+            $value = array ('link' => $dbvalue['field_url'], 'title' => $dbvalue['field_title'], 'attributes' => unserialize($dbvalue['attributes']));
+            $additions = array($field['field_name'] => array('value' => $value));
+          }
+          break;
+      }
+      return $additions;
+
+    case 'view':
+      $output = '';
+      if ($field['multiple']) {
+        foreach ($node_field as $delta => $item) {
+          $node_field[$delta]['view'] = link_field_view($field, $item['value'], $item, $node);
+        }
+      }
+      else {
+        $node_field['view'] = link_field_view($field, $node_field['value'], $node_field, $node);
+      }
+      $node->$field['field_name'] = $node_field;
+      if ($field['multiple']) {
+        $output = '';
+        foreach ($node_field as $delta => $item) {
+          $output .= '<div class="'. $field['field_name'] .'">'. $item['view'] .'</div>';
+        }
+        return $output;
+      }
+      else {
+        return '<div class="'. $field['field_name'] .'">'. $node_field['view'] .'</div>';
+      }
+
+    case 'insert':
+      switch($field['type']) {
+        case 'link':
+          if ($field['multiple']) {
+            foreach ($node_field as $delta => $item) {
+              if ($item['value']['link']) {
+                db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, delta, field_url, field_title, attributes) VALUES (%d, %d, '%s', %d, '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $delta, $item['value']['link'], $item['value']['title'], serialize($item['value']['attributes']));
+              }
+            }
+          }
+          else {
+            if ($node_field['value']['link']) {
+              db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, field_url, field_title, attributes) VALUES (%d, %d, '%s', '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $node_field['value']['link'], $node_field['value']['title'], serialize($node_field['value']['attributes']));
+            }
+          }
+          break;
+      }
+      return;
+
+    case 'update':
+      // Delete and insert, rather than update, in case a field was added.
+      switch($field['type']) {
+        case 'link':
+          link_field('delete', $node, $field, $node_field, $teaser, $page);
+          link_field('insert', $node, $field, $node_field, $teaser, $page);
+          break;
+      }
+      return;
+
+    case 'delete':
+      // Delete using nid rather than vid to purge all revisions.
+      switch($field['type']) {
+        case 'link':
+          db_query("DELETE FROM {node_field_link_data} WHERE nid = %d AND field_name = '%s'", $node->nid, $field['field_name']);
+          break;
+      }
+      return;
+  }
+}
+
+/**
+ * Implementation of hook_widget_info().
+ */
+function link_widget_info() {
+  return array(
+    'link' => array(
+      'label' => 'Text Fields for Title and URL',
+      'field types' => array('link'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_widget().
+ */
+function link_widget($op, &$node, $field, &$node_field) {
+  switch ($op) {
+    case 'form':
+      $form = array();
+
+      $form[$field['field_name']] = array('#tree' => TRUE);
+
+      if ($field['multiple']) {
+      	// Generate more fields if necessary on preview
+      	if ($_POST['edit'][$field['field_name']]) {
+      	  $node_field = $_POST['edit'][$field['field_name']];
+      	}
+      	// Convert an old 'single' value field into the first value of a new multi-value field
+      	if ($node_field['value']) {
+      	  $node_field[0]['value'] = $node_field['value'];
+      	  unset($node_field['value']);
+      	}
+        $delta = 0;
+        foreach ($node_field as $data) {
+	      if ($data['value']['link']) {
+	        $form[$field['field_name']][$delta]['value'] = array(
+	          '#type' => 'fieldset',
+	          '#title' => t($field['widget']['label']),
+	          '#tree' => true,
+	        );
+	        $form[$field['field_name']][$delta]['value']['link'] = array(
+	          '#type' => 'textfield',
+	          '#title' => t('URL'),
+	          '#default_value' => $data['value']['link'],
+	          '#required' => ($delta == 0) ? $field['required'] : FALSE,
+	        );
+	        $form[$field['field_name']][$delta]['value']['title'] = array(
+	          '#type' => 'textfield',
+	          '#title' => t('Title'),
+	          '#default_value' => $data['value']['title'],
+	        );
+	        if ($field['attributes']['target'] == 'user') {
+  	          $form[$field['field_name']][$delta]['value']['attributes']['target'] = array(
+	            '#type' => 'checkbox',
+	            '#title' => t('Open New Window'),
+	            '#default_value' => $data['value']['attributes']['target'],
+	            '#return_value' => "_blank",
+	          );
+	        }
+            $delta++;
+          }
+        }
+        foreach (range($delta, $delta + 1) as $delta) {
+          $form[$field['field_name']][$delta]['value'] = array(
+            '#type' => 'fieldset',
+            '#title' => t($field['widget']['label']),
+            '#tree' => true,
+          );
+          $form[$field['field_name']][$delta]['value']['link'] = array(
+            '#type' => 'textfield',
+            '#title' => t('URL'),
+            '#default_value' => $node_field[$delta]['value']['link'],
+            '#required' => ($delta == 0) ? $field['required'] : FALSE,
+          );
+          $form[$field['field_name']][$delta]['value']['title'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Title'),
+            '#default_value' => $node_field[$delta]['value']['title'],
+          );
+	      if ($field['attributes']['target'] == 'user') {
+ 	        $form[$field['field_name']][$delta]['value']['attributes']['target'] = array(
+              '#type' => 'checkbox',
+              '#title' => t('Open New Window'),
+              '#return_value' => "_blank",
+            );
+          }
+        }
+      } // end if multiple
+      else {
+          $form[$field['field_name']]['value'] = array(
+            '#type' => 'fieldset',
+            '#title' => t($field['widget']['label']),
+            '#tree' => true,
+          );
+          $form[$field['field_name']]['value']['link'] = array(
+            '#type' => 'textfield',
+            '#title' => t('URL'),
+            '#default_value' => $node_field['value']['link'],
+            '#required' => ($delta == 0) ? $field['required'] : FALSE,
+          );
+          $form[$field['field_name']]['value']['title'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Title'),
+            '#default_value' => $node_field['value']['title'],
+            '#required' => ($delta == 0) ? $field['required'] : FALSE,
+          );
+	      if ($field['attributes']['target'] == 'user') {
+ 	        $form[$field['field_name']]['value']['attributes']['target'] = array(
+              '#type' => 'checkbox',
+              '#title' => t('Open New Window'),
+              '#default_value' => $node_field['value']['attributes']['target'],
+              '#return_value' => "_blank",
+            );
+          }
+      }
+      return $form;
+
+    case 'validate':
+      if ($field['multiple']) {
+        foreach($node_field as $delta => $value) {
+        	if ($node_field[$delta]['value']['link']) {
+        	  if (!link_validate_link($value['value']['link'])) {
+              form_set_error($field['field_name'] .']['. $delta. '][value][link', t('Not a valid URL.'));
+            }
+          }
+        }
+      }
+      else {
+      	if ($node_field['value']['link']) {
+          if (!link_validate_link($node_field['value']['link'])) {
+            form_set_error($field['field_name'] .'][value][link', t('Not a valid URL.'));
+          }
+      	}
+      }
+      return;
+      
+    case 'process form values':
+      if ($field['multiple']) {
+        foreach($node_field as $delta => $value) {
+       	  if (!$node_field[$delta]['value']['attributes']['target'] || $node_field[$delta]['value']['attributes']['target'] == "default") {
+            unset($node_field[$delta]['value']['attributes']['target']);
+          }
+        }
+      }
+      else {
+       	if (!$node_field['value']['attributes']['target'] || $node_field[$delta]['value']['attributes']['target'] == "default") {
+          unset($node_field['value']['attributes']['target']);
+        }
+      }
+      return;
+    
+    case 'submit':
+      return;
+  }
+}
+
+/**
+ * Implementation of hook_field_view() which performs any translation necessary.
+ */
+function link_field_view($field, $value, $addlfields = array(), $node = NULL) {
+  // Add attributes defined at the widget level
+  if (is_array($value['attributes'])) {
+    foreach($value['attributes'] as $attribute => $attbvalue) {
+    	if (isset($field['attributes'][$attribute]) && $field['attributes'][$attribute] == 'user') {
+        $attributes .= ' '.$attribute.'="'.$attbvalue.'"';
+  	  }
+    }
+  }
+  // Add attributes defined at the field level
+  if (is_array($field['attributes'])) {
+    foreach($field['attributes'] as $attribute => $attbvalue) {
+      if (!empty($attbvalue) && $attbvalue != 'default' && $attbvalue != 'user') {
+        $attributes .= ' '.$attribute.'="'.$attbvalue.'"';
+      }
+    }
+  }
+  // Build the link with a title
+  if (strlen(trim($value['title']))) {
+    $output = '<a href="'.$value['link'].'"'.$attributes.'>'.check_plain($value['title']).'</a>';
+  }
+  // Build the link with the URL as the title
+  else {
+  	$output = '<a href="'.$value['link'].'"'.$attributes.'>'.$value['link'].'</a>';
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_views_tables().
+ */
+function link_views_tables() {
+  $tables = array();
+
+  $fields = content_fields();
+  foreach ($fields as $field) {
+    if ($field['type'] == 'link') {
+      $tables['node_field_link_data_'. $field['field_name']] = array(
+        'name' => 'node_field_link_data',
+        'join' => array(
+          'left' => array(
+            'table' => 'node',
+            'field' => 'vid',
+          ),
+          'right' => array(
+            'field' => 'vid',
+          ),
+            'extra' => array('field_name' => $field['field_name']),
+        ),
+        'fields' => array(
+          'field_url' => array(
+            'name' => 'Link URL: '. $field['field_name'],
+            'sortable' => TRUE,
+          ),
+          'field_title' => array(
+            'name' => 'Link Title: '. $field['field_name'],
+            'sortable' => TRUE,
+          ),
+        ),
+        'sorts' => array(
+          'field_url' => array('name' => 'Link URL: '. $field['field_name']),
+          'field_title' => array('name' => 'Link Title: '. $field['field_name']),
+        ),
+        'filters' => array(
+          'field_url' => array(
+            'name' => 'Link URL: '. $field['field_name'],
+            'operator' => array(
+              '='  => 'is',
+              'contains' => 'contains',
+              'begins' => 'begins with',
+              'ends' => 'ends wth',
+              'LIKE'  => 'matches pattern',
+            ),
+            'operator-handler' => '_text_filter_operator',
+          ),
+          'field_title' => array(
+            'name' => 'Link Title: '. $field['field_name'],
+            'operator' => array(
+              '='  => 'is',
+              'contains' => 'contains',
+              'begins' => 'begins with',
+              'ends' => 'ends wth',
+              'LIKE'  => 'matches pattern',
+            ),
+            'operator-handler' => '_text_filter_operator',
+          ),
+        ),
+      );
+    }
+  }
+
+  return $tables;
+}
+
+function link_validate_link($text) {
+	if (!preg_match(
+	  // The protocols: http://
+    '/^((https|http|ftp|news):\/\/)?'.
+	'('.
+	  // domains
+      '(([a-z0-9]([a-z0-9\-_]*\.)+)(aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|[a-z]{2}))'.
+      // OR ip addresses
+      '|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'.
+	')'.
+    // port number
+    '(:([0-9]{1,4}))?'.
+	// the rest of the path
+	'(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.\/%=&]*)?)?'.
+    // forward slash 0 or 1 times
+    '(\/)?'.
+    // end of the expression, case insensitive
+    '$/i', $text, $m)) {
+  	return false;
+  }
+  else {
+  	$url = new stdClass();
+    $url->protocol = $m[2];
+    $url->hostname = strtolower($m[5]).strtolower($m[7]);
+    $url->ip = $m[8];
+    $url->port = $m[10];
+    return $url;
+  }
+}
