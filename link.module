@@ -245,7 +245,6 @@ function link_widget($op, &$node, $field, &$node_field) {
             '#type' => 'textfield',
             '#title' => t('Title'),
             '#default_value' => $node_field['value']['title'],
-            '#required' => ($delta == 0) ? $field['required'] : FALSE,
           );
 	      if ($field['attributes']['target'] == 'user') {
  	        $form[$field['field_name']]['value']['attributes']['target'] = array(
