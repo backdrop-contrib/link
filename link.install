@@ -22,10 +22,10 @@ function link_install() {
 
     case 'pgsql':
       db_query("CREATE TABLE {node_field_link_data} (
-          nid integer unsigned NOT NULL default '0',
-          vid integer unsigned NOT NULL default '0',
+          nid integer NOT NULL default '0' CHECK (nid >= 0),
+          vid integer NOT NULL default '0' CHECK (nid >= 0),
           field_name varchar(32) NOT NULL default '',
-          delta integer unsigned NOT NULL default '0',
+          delta integer NOT NULL default '0' CHECK (nid >= 0),
           field_url varchar(255) NOT NULL default '',
           field_title varchar(255) NOT NULL default '',
           attributes text NOT NULL default '',
