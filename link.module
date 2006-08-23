@@ -32,6 +32,20 @@ function link_field_settings($op, $field) {
   switch ($op) {
     case 'form':
       $form = array();
+      
+      $options = array (
+        'optional' => t('Optional Title'),
+        'required' => t('Required Title'),
+        'none' => t('No Title'),
+      );
+      
+      $form['title'] = array(
+        '#type' => 'radios',
+        '#title' => t('Link Title'),
+        '#default_value' => isset($field['title']) ? $field['title'] : 'optional',
+        '#options' => $options,
+      );
+      
       $options = array(
         'default' => t('Default (no target attribute)'),
         '_top' => t('Open link in window root'),
@@ -50,7 +64,7 @@ function link_field_settings($op, $field) {
       return $form;
 
     case 'save':
-      return array('attributes');
+      return array('attributes', 'title');
   }
 }
 
@@ -211,9 +225,18 @@ function link_widget($op, &$node, $field, &$node_field) {
       if ($field['multiple']) {
         foreach($node_field as $delta => $value) {
           if ($node_field[$delta]['value']['link']) {
+            // Validate the link
             if (!link_validate_link($value['value']['link'])) {
               form_set_error($field['field_name'] .']['. $delta. '][value][link', t('Not a valid URL.'));
             }
+            // Require a title for the link if necessary
+            elseif ($field['title'] == 'required' && strlen(trim($value['value']['title'])) == 0) {
+              form_set_error($field['field_name'] .']['. $delta. '][value][title', t('Titles are required for all links.'));
+            }
+          }
+          // Require a link if we have a title
+          elseif (strlen($value['value']['title']) > 0) {
+            form_set_error($field['field_name'] .']['. $delta. '][value][link', t('You cannot enter a title without a link.'));
           }
         }
       }
@@ -260,11 +283,14 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
     '#default_value' => $node_field['value']['link'],
     '#required' => ($delta == 0) ? $field['required'] : FALSE,
   );
-  $form_item['value']['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t($field['widget']['label'])." ".t('Title'),
-    '#default_value' => $node_field['value']['title'],
-  );
+  if ($field['title'] != 'none') {
+    $form_item['value']['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t($field['widget']['label'])." ".t('Title'),
+      '#default_value' => $node_field['value']['title'],
+      '#required' => ($delta == 0 && $field['title'] == 'required') ? $field['required'] : FALSE,
+    );
+  }
   if ($field['attributes']['target'] == 'user') {
     $form_item['value']['attributes']['target'] = array(
       '#type' => 'checkbox',
