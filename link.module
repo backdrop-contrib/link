@@ -326,9 +326,9 @@ function _link_field_view($field, $value, $addlfields = array(), $node = NULL) {
   if (strlen(trim($value['title']))) {
     $output = l($value['title'],$value['link'],$attributes);
   }
-  // Build the link with the URL as the title
+  // Build the link with the URL as the title (max 80 characters)
   else {
-    $output = l($value['link'],$value['link'],$attributes);
+    $output = l(strlen($value['link']) > 80 ? substr($value['link'],0,80)."..." : $value['link'],$value['link'],$attributes);
   }
   return $output;
 }
@@ -412,7 +412,7 @@ function link_validate_link($text) {
     // port number
     '(:([0-9]{1,4}))?'.
   // the rest of the path
-  '(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.\/%=&]*)?)?'.
+  '(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.\/%=&,:]*)?)?'.
     // forward slash 0 or 1 times
     '(\/)?'.
     // end of the expression, case insensitive
