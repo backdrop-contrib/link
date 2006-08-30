@@ -33,12 +33,12 @@ function link_field_settings($op, $field) {
     case 'form':
       $form = array();
       
+      
       $options = array (
         'optional' => t('Optional Title'),
         'required' => t('Required Title'),
         'none' => t('No Title'),
       );
-      
       $form['title'] = array(
         '#type' => 'radios',
         '#title' => t('Link Title'),
@@ -60,6 +60,15 @@ function link_field_settings($op, $field) {
         '#title' => t('Link Target'),
         '#default_value' => $field['attributes']['target'] ? $field['attributes']['target'] : 'default',
         '#options' => $options,
+      );
+      $form['attributes']['rel'] = array(
+        '#type' => 'checkbox',
+        '#return_value' => 'nofollow',
+        '#prefix' => '<div class="form-item"><label>Nofollow Value: </label>',
+        '#suffix' => '</div>',
+        '#title' => t('Add rel=&quot;nofollow&quot; Attribute'),
+        '#description' => t('The <a href="http://en.wikipedia.org/wiki/Nofollow#rel.3Dnofollow">rel=&quot;nofollow&quot; attribute</a> prevents some search engines from spidering entered links.'),
+        '#default_value' => isset($field['attributes']['rel']) ? $field['attributes']['rel'] : false,
       );
       return $form;
 
