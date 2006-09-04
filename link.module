@@ -158,7 +158,7 @@ function link_field($op, &$node, $field, &$node_field, $teaser, $page) {
       // Delete and insert, rather than update, in case a field was added.
       switch($field['type']) {
         case 'link':
-          link_field('delete', $node, $field, $node_field, $teaser, $page);
+          db_query("DELETE FROM {node_field_link_data} WHERE vid = %d AND field_name = '%s'", $node->vid, $field['field_name']);
           link_field('insert', $node, $field, $node_field, $teaser, $page);
           break;
       }
