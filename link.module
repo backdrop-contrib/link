@@ -33,12 +33,12 @@ function link_field_settings($op, $field) {
     case 'form':
       $form = array();
       
-      
       $options = array (
         'optional' => t('Optional Title'),
         'required' => t('Required Title'),
         'none' => t('No Title'),
       );
+      
       $form['title'] = array(
         '#type' => 'radios',
         '#title' => t('Link Title'),
@@ -261,15 +261,11 @@ function link_widget($op, &$node, $field, &$node_field) {
     case 'process form values':
       if ($field['multiple']) {
         foreach($node_field as $delta => $value) {
-           if (!$node_field[$delta]['value']['attributes']['target'] || $node_field[$delta]['value']['attributes']['target'] == "default") {
-            unset($node_field[$delta]['value']['attributes']['target']);
-          }
+          _link_widget_process($node_field[$delta],$delta);
         }
       }
       else {
-         if (!$node_field['value']['attributes']['target'] || $node_field[$delta]['value']['attributes']['target'] == "default") {
-          unset($node_field['value']['attributes']['target']);
-        }
+        _link_widget_process($node_field);
       }
       return;
     
@@ -310,6 +306,13 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
   }
 }
 
+function _link_widget_process (&$node_field, $delta = 0) {
+  // Remove the target attribute if not selected
+  if (!$node_field['value']['attributes']['target'] || $node_field['value']['attributes']['target'] == "default") {
+    unset($node_field['value']['attributes']['target']);
+  } 
+}
+
 /**
  * Implementation of hook_field_view() which performs any translation necessary.
  */
@@ -333,11 +336,11 @@ function _link_field_view($field, $value, $addlfields = array(), $node = NULL) {
   }
   // Build the link with a title
   if (strlen(trim($value['title']))) {
-    $output = l($value['title'],$value['link'],$attributes);
+    $output = l($value['title'],link_cleanup_url($value['link']),$attributes);
   }
   // Build the link with the URL as the title (max 80 characters)
   else {
-    $output = l(strlen($value['link']) > 80 ? substr($value['link'],0,80)."..." : $value['link'],$value['link'],$attributes);
+    $output = l(strlen($value['link']) > 80 ? substr($value['link'],0,80)."..." : $value['link'],link_cleanup_url($value['link']),$attributes);
   }
   return $output;
 }
@@ -408,10 +411,39 @@ function link_views_tables() {
   return $tables;
 }
 
+/**
+ * Forms a valid URL if possible from an entered address.
+ * Trims whitespace and automatically adds an http:// to addresses without a protocol specified
+ *
+ * @param unknown_type $url
+ */
+function link_cleanup_url ($url) {
+  $url = trim($url);
+  
+  // Check if there is no protocol specified
+  $protocol_match = preg_match("/^([a-z0-9][a-z0-9\.\-_]*:\/\/)/i",$url);
+  if (empty($protocol_match)) {
+    // But should it be? Add an automatic http:// if it starts with a domain name
+    $domain_match = preg_match('/^(([a-z0-9]([a-z0-9\-_]*\.)+)(aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|[a-z]{2}))/i',$url);
+    if (!empty($domain_match)) {
+      $url = "http://".$url;
+    }
+  }
+  
+  return $url;
+}
+
+/**
+ * A lenient verification for URLs. Accepts all URLs following RFC 1738 standard for URL formation.  
+ *
+ * @param string $text
+ * @return mixed Returns boolean FALSE if the URL is not valid. On success, returns an object with
+ * the following attributes: protocol, hostname, ip, and port.
+ */
 function link_validate_link($text) {
   if (!preg_match(
-    // The protocols: http://
-    '/^((https|http|ftp|news):\/\/)?'.
+    // protocol
+    '/^([a-z0-9][a-z0-9\.\-_]*:\/\/)?'.
   '('.
     // domains
       '(([a-z0-9]([a-z0-9\-_]*\.)+)(aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|[a-z]{2}))'.
