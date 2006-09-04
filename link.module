@@ -415,9 +415,10 @@ function link_views_tables() {
  * Forms a valid URL if possible from an entered address.
  * Trims whitespace and automatically adds an http:// to addresses without a protocol specified
  *
- * @param unknown_type $url
+ * @param string $url
+ * @param string $protocol The protocol to be prepended to the url if one is not specified
  */
-function link_cleanup_url ($url) {
+function link_cleanup_url ($url, $protocol = "http") {
   $url = trim($url);
   
   // Check if there is no protocol specified
@@ -426,7 +427,7 @@ function link_cleanup_url ($url) {
     // But should it be? Add an automatic http:// if it starts with a domain name
     $domain_match = preg_match('/^(([a-z0-9]([a-z0-9\-_]*\.)+)(aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|[a-z]{2}))/i',$url);
     if (!empty($domain_match)) {
-      $url = "http://".$url;
+      $url = $protocol."://".$url;
     }
   }
   
