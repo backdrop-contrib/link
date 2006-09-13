@@ -456,9 +456,9 @@ function link_validate_link($text) {
     // the rest of the path
     "(\/[a-z0-9_\-\.~+%=&,$'():;*@]+)*".
     // anchors
-    "#?[a-z0-9_\-\.~+%=&,$'():;*@]*".
+    "\/?#?[a-z0-9_\-\.~+%=&,$'():;*@]*".
     // the query string
-    "(\?[a-z0-9+_\-\.\/%=&,$'():;*@]*)?". //)?". //$-_.+*'()
+    "(\/?\?[a-z0-9+_\-\.\/%=&,$'():;*@]*)?".
     // forward slash 0 or 1 times
     '(\/)?'.
     // end of the expression, case insensitive
