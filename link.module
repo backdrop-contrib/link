@@ -226,6 +226,7 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
     '#title' => t($field['widget']['label'])." ".t('URL'),
     '#default_value' => $node_field['value']['link'],
     '#required' => ($delta == 0) ? $field['required'] : FALSE,
+    '#description' => $field['widget']['description'],
   );
   if ($field['title'] != 'none') {
     $form_item['value']['title'] = array(
