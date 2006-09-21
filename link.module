@@ -86,68 +86,26 @@ function link_field($op, &$node, $field, &$node_field, $teaser, $page) {
       switch($field['type']) {
         case 'link':
           $result = db_query("SELECT field_url, field_title, attributes FROM {node_field_link_data} WHERE vid = %d AND field_name = '%s' ORDER BY delta", $node->vid, $field['field_name']);
-          if ($field['multiple']) {
-            $values = array();
-            while ($value = db_fetch_array($result)) {
-              $values[] = array('value' => array('link' => $value['field_url'], 'title' => $value['field_title'], 'attributes' => unserialize($value['attributes'])));
-            }
-            $additions = array($field['field_name'] => $values);
+          while ($value = db_fetch_array($result)) {
+            $values[] = array('value' => array('link' => $value['field_url'], 'title' => $value['field_title'], 'attributes' => unserialize($value['attributes'])));
           }
-          else {
-            $dbvalue = db_fetch_array($result);
-            $value = array ('link' => $dbvalue['field_url'], 'title' => $dbvalue['field_title'], 'attributes' => unserialize($dbvalue['attributes']));
-            $additions = array($field['field_name'] => array('value' => $value));
-          }
+          $additions = array($field['field_name'] => $values);
           break;
       }
       return $additions;
 
     case 'view':
       $output = '';
-      if ($field['multiple']) {
-        // Convert an old 'single value' field to the first of multiple
-        if ($node_field['value']) {
-          $node_field[0]['value'] = $node_field['value'];
-          unset($node_field['value']);
-        }
-        foreach ($node_field as $delta => $item) {
-          $node_field[$delta]['view'] = _link_field_view($field, $item['value'], $item, $node);
-        }
+      foreach ($node_field as $delta => $item) {
+        $node_field[$delta]['view'] = _link_field_view($field, $item['value'], $item, $node);
       }
-      else {
-        // Convert an old 'multiple value' field to single
-        if ($node_field[0]['value']) {
-          $node_field['value'] = $node_field[0]['value'];
-          unset($node_field[0]['value']);
-        }
-        $node_field['view'] = _link_field_view($field, $node_field['value'], $node_field, $node);
-      }
-      
-      $node->$field['field_name'] = $node_field;
-      if ($field['multiple']) {
-        $output = '';
-        foreach ($node_field as $delta => $item) {
-          $output .= '<div class="'. $field['field_name'] .'">'. $item['view'] .'</div>';
-        }
-        return $output;
-      }
-      else {
-        return '<div class="'. $field['field_name'] .'">'. $node_field['view'] .'</div>';
-      }
-
+      return theme('field', $node, $field, $node_field, $teaser, $page);
     case 'insert':
       switch($field['type']) {
         case 'link':
-          if ($field['multiple']) {
-            foreach ($node_field as $delta => $item) {
-              if ($item['value']['link']) {
-                db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, delta, field_url, field_title, attributes) VALUES (%d, %d, '%s', %d, '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $delta, $item['value']['link'], $item['value']['title'], serialize($item['value']['attributes']));
-              }
-            }
-          }
-          else {
-            if ($node_field['value']['link']) {
-              db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, field_url, field_title, attributes) VALUES (%d, %d, '%s', '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $node_field['value']['link'], $node_field['value']['title'], serialize($node_field['value']['attributes']));
+          foreach ($node_field as $delta => $item) {
+            if ($item['value']['link']) {
+              db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, delta, field_url, field_title, attributes) VALUES (%d, %d, '%s', %d, '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $delta, $item['value']['link'], $item['value']['title'], serialize($item['value']['attributes']));
             }
           }
           break;
@@ -202,11 +160,6 @@ function link_widget($op, &$node, $field, &$node_field) {
         if ($_POST['edit'][$field['field_name']]) {
           $node_field = $_POST['edit'][$field['field_name']];
         }
-        // Convert an old 'single' value field into the first value of a new multi-value field
-        if ($node_field['value']) {
-          $node_field[0]['value'] = $node_field['value'];
-          unset($node_field['value']);
-        }
         $delta = 0;
         // Render link fields for all the entered values
         foreach ($node_field as $data) {
@@ -221,51 +174,37 @@ function link_widget($op, &$node, $field, &$node_field) {
         }
       } // end if multiple
       else {
-        // Convert an old 'multiple' value field into the value of a new single-value field
-        if ($node_field[0]['value']) {
-          $node_field['value'] = $node_field[0]['value'];
-          unset($node_field[0]['value']);
+        // Convert an old 'singe' value field into the new array based format
+        if ($node_field['value']) {
+          $node_field[0]['value'] = $node_field['value'];
+          unset($node_field['value']);
         }
-        _link_widget_form($form[$field['field_name']], $field, $node_field);
+        _link_widget_form($form[$field['field_name']][0], $field, $node_field[0]);
       }
       return $form;
 
     case 'validate':
-      if ($field['multiple']) {
-        foreach($node_field as $delta => $value) {
-          if ($node_field[$delta]['value']['link']) {
-            // Validate the link
-            if (!link_validate_link($value['value']['link'])) {
-              form_set_error($field['field_name'] .']['. $delta. '][value][link', t('Not a valid URL.'));
-            }
-            // Require a title for the link if necessary
-            elseif ($field['title'] == 'required' && strlen(trim($value['value']['title'])) == 0) {
-              form_set_error($field['field_name'] .']['. $delta. '][value][title', t('Titles are required for all links.'));
-            }
+      foreach($node_field as $delta => $value) {
+        if ($value['value']['link']) {
+          // Validate the link
+          if (!link_validate_link($value['value']['link'])) {
+            form_set_error($field['field_name'] .']['. $delta. '][value][link', t('Not a valid URL.'));
           }
-          // Require a link if we have a title
-          elseif (strlen($value['value']['title']) > 0) {
-            form_set_error($field['field_name'] .']['. $delta. '][value][link', t('You cannot enter a title without a link.'));
+          // Require a title for the link if necessary
+          elseif ($field['title'] == 'required' && strlen(trim($value['value']['title'])) == 0) {
+            form_set_error($field['field_name'] .']['. $delta. '][value][title', t('Titles are required for all links.'));
           }
         }
-      }
-      else {
-        if ($node_field['value']['link']) {
-          if (!link_validate_link($node_field['value']['link'])) {
-            form_set_error($field['field_name'] .'][value][link', t('Not a valid URL.'));
-          }
+        // Require a link if we have a title
+        elseif (strlen($value['value']['title']) > 0) {
+          form_set_error($field['field_name'] .']['. $delta. '][value][link', t('You cannot enter a title without a link.'));
         }
       }
       return;
       
     case 'process form values':
-      if ($field['multiple']) {
-        foreach($node_field as $delta => $value) {
-          _link_widget_process($node_field[$delta],$delta);
-        }
-      }
-      else {
-        _link_widget_process($node_field);
+      foreach($node_field as $delta => $value) {
+        _link_widget_process($node_field[$delta],$delta);
       }
       return;
     
@@ -310,7 +249,7 @@ function _link_widget_process (&$node_field, $delta = 0) {
   // Remove the target attribute if not selected
   if (!$node_field['value']['attributes']['target'] || $node_field['value']['attributes']['target'] == "default") {
     unset($node_field['value']['attributes']['target']);
-  } 
+  }
 }
 
 /**
