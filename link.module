@@ -95,7 +95,6 @@ function link_field($op, &$node, $field, &$node_field, $teaser, $page) {
       return $additions;
 
     case 'view':
-      $output = '';
       foreach ($node_field as $delta => $item) {
         $node_field[$delta]['view'] = _link_field_view($field, $item['value'], $item, $node);
       }
@@ -223,6 +222,7 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
   );
   $form_item['value']['link'] = array(
     '#type' => 'textfield',
+    '#maxlength' => '255',
     '#title' => t($field['widget']['label'])." ".t('URL'),
     '#default_value' => $node_field['value']['link'],
     '#required' => ($delta == 0) ? $field['required'] : FALSE,
@@ -230,6 +230,7 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
   if ($field['title'] != 'none') {
     $form_item['value']['title'] = array(
       '#type' => 'textfield',
+      '#maxlength' => '255',
       '#title' => t($field['widget']['label'])." ".t('Title'),
       '#default_value' => $node_field['value']['title'],
       '#required' => ($delta == 0 && $field['title'] == 'required') ? $field['required'] : FALSE,
