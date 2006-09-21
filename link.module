@@ -219,6 +219,7 @@ function link_widget($op, &$node, $field, &$node_field) {
 function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
   $form_item['value'] = array(
     '#tree' => true,
+    '#weigth' => $field['widget']['weight'],
   );
   $form_item['value']['link'] = array(
     '#type' => 'textfield',
