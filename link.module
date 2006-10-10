@@ -373,7 +373,7 @@ function link_cleanup_url ($url, $protocol = "http") {
     }
   }
   
-  return $url;
+  return check_url($url);
 }
 
 /**
