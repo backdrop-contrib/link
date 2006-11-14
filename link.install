@@ -5,32 +5,41 @@
  * Implementation of hook_install().
  */
 function link_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {node_field_link_data} (
-          nid int unsigned NOT NULL default '0',
-          vid int unsigned NOT NULL default '0',
-          field_name varchar(32) NOT NULL default '',
-          delta int unsigned NOT NULL default '0',
-          field_url varchar(255) NOT NULL default '',
-          field_title varchar(255) NOT NULL default '',
-          attributes text NOT NULL default '',
-          PRIMARY KEY  (vid,field_name,delta)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      break;
+  return;
+}
 
-    case 'pgsql':
-      db_query("CREATE TABLE {node_field_link_data} (
-          nid integer NOT NULL default '0' CHECK (nid >= 0),
-          vid integer NOT NULL default '0' CHECK (nid >= 0),
-          field_name varchar(32) NOT NULL default '',
-          delta integer NOT NULL default '0' CHECK (nid >= 0),
-          field_url varchar(255) NOT NULL default '',
-          field_title varchar(255) NOT NULL default '',
-          attributes text NOT NULL default '',
-          PRIMARY KEY  (vid,field_name,delta)
-        )");
-      break;
+/**
+ * Removed link.module created tables, move data to content.module tables
+ */
+function link_update_1() {
+  $ret = array();
+
+  include_once(drupal_get_path('module', 'content') .'/content.module');
+  include_once(drupal_get_path('module', 'content') .'/content_admin.inc');
+
+  $fields = content_fields();
+
+  foreach ($fields as $field) {
+    switch ($field['type']) {
+      case 'link':
+        $columns = array(
+          'url' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
+          'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
+          'attributes' => array('type' => 'mediumtext', 'not null' => TRUE, 'default' => "''"),
+        );
+        content_alter_db_field(array(), array(), $field, $columns);
+        $db_info = content_database_info($field);
+        if ($field['multiple']) {
+          $ret[] = update_sql('INSERT INTO {'. $db_info['table'] .'} (vid, delta, nid, '. $field['field_name'] .'_url, '. $field['field_name'] .'_title, '. $field['field_name'] ."_attributes) SELECT vid, delta, nid, field_url, field_title, attributes FROM {node_field_link_data} WHERE field_name = '". $field['field_name'] ."'");
+        }
+        else {
+          $ret[] = update_sql('INSERT INTO {'. $db_info['table'] .'} (vid, nid, '. $field['field_name'] .'_url, '. $field['field_name'] .'_title, '. $field['field_name'] ."_attributes) SELECT vid, nid, field_url, field_title, attributes FROM {node_field_link_data} WHERE field_name = '". $field['field_name'] ."'");
+        }
+    }
   }
+
+  $ret[] = update_sql('DROP TABLE {node_field_link_data}');
+  
+  db_query('DELETE FROM {cache}');
+  return $ret;
 }

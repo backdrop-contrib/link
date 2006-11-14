@@ -74,61 +74,37 @@ function link_field_settings($op, $field) {
 
     case 'save':
       return array('attributes', 'title');
+
+    case 'database columns':
+      return array(
+        'url' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
+        'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
+        'attributes' => array('type' => 'mediumtext', 'not null' => TRUE, 'default' => "''"),
+        );
+
+    case 'filters':
+      return array(
+          'default' => array(
+            'operator' => 'views_handler_operator_like',
+            'handler' => 'views_handler_filter_like',
+          ),
+        );
+
   }
 }
 
 /**
  * Implementation of hook_field().
  */
-function link_field($op, &$node, $field, &$node_field, $teaser, $page) {
+function link_field($op, &$node, $field, &$items, $teaser, $page) {
   switch ($op) {
-    case 'load':
-      switch($field['type']) {
-        case 'link':
-          $result = db_query("SELECT field_url, field_title, attributes FROM {node_field_link_data} WHERE vid = %d AND field_name = '%s' ORDER BY delta", $node->vid, $field['field_name']);
-          while ($value = db_fetch_array($result)) {
-            $values[] = array('value' => array('link' => $value['field_url'], 'title' => $value['field_title'], 'attributes' => unserialize($value['attributes'])));
-          }
-          $additions = array($field['field_name'] => $values);
-          break;
-      }
-      return $additions;
 
     case 'view':
-      foreach ($node_field as $delta => $item) {
-        $node_field[$delta]['view'] = _link_field_view($field, $item['value'], $item, $node);
+      foreach ($items as $delta => $item) {
+        $items[$delta]['view'] = content_format($field, $item, 'default', $node);
       }
-      return theme('field', $node, $field, $node_field, $teaser, $page);
-    case 'insert':
-      switch($field['type']) {
-        case 'link':
-          foreach ($node_field as $delta => $item) {
-            if ($item['value']['link']) {
-              db_query("INSERT INTO {node_field_link_data} (nid, vid, field_name, delta, field_url, field_title, attributes) VALUES (%d, %d, '%s', %d, '%s', '%s', '%s')", $node->nid, $node->vid, $field['field_name'], $delta, $item['value']['link'], $item['value']['title'], serialize($item['value']['attributes']));
-            }
-          }
-          break;
-      }
-      return;
-
-    case 'update':
-      // Delete and insert, rather than update, in case a field was added.
-      switch($field['type']) {
-        case 'link':
-          db_query("DELETE FROM {node_field_link_data} WHERE vid = %d AND field_name = '%s'", $node->vid, $field['field_name']);
-          link_field('insert', $node, $field, $node_field, $teaser, $page);
-          break;
-      }
-      return;
-
-    case 'delete':
-      // Delete using nid rather than vid to purge all revisions.
-      switch($field['type']) {
-        case 'link':
-          db_query("DELETE FROM {node_field_link_data} WHERE nid = %d AND field_name = '%s'", $node->nid, $field['field_name']);
-          break;
-      }
-      return;
+      return theme('field', $node, $field, $items, $teaser, $page);
+    break;
   }
 }
 
@@ -162,7 +138,7 @@ function link_widget($op, &$node, $field, &$node_field) {
         $delta = 0;
         // Render link fields for all the entered values
         foreach ($node_field as $data) {
-        if ($data['value']['link']) {
+        if ($data['url']) {
             _link_widget_form($form[$field['field_name']][$delta], $field, $data, $delta);
             $delta++;
           }
@@ -173,29 +149,24 @@ function link_widget($op, &$node, $field, &$node_field) {
         }
       } // end if multiple
       else {
-        // Convert an old 'singe' value field into the new array based format
-        if ($node_field['value']) {
-          $node_field[0]['value'] = $node_field['value'];
-          unset($node_field['value']);
-        }
         _link_widget_form($form[$field['field_name']][0], $field, $node_field[0]);
       }
       return $form;
 
     case 'validate':
       foreach($node_field as $delta => $value) {
-        if ($value['value']['link']) {
+        if ($value['url']) {
           // Validate the link
-          if (!link_validate_link($value['value']['link'])) {
-            form_set_error($field['field_name'] .']['. $delta. '][value][link', t('Not a valid URL.'));
+          if (!link_validate_link($value['url'])) {
+            form_set_error($field['field_name'] .']['. $delta. '][value][url', t('Not a valid URL.'));
           }
           // Require a title for the link if necessary
-          elseif ($field['title'] == 'required' && strlen(trim($value['value']['title'])) == 0) {
+          elseif ($field['title'] == 'required' && strlen(trim($value['title'])) == 0) {
             form_set_error($field['field_name'] .']['. $delta. '][value][title', t('Titles are required for all links.'));
           }
         }
         // Require a link if we have a title
-        elseif (strlen($value['value']['title']) > 0) {
+        elseif (strlen($value['title']) > 0) {
           form_set_error($field['field_name'] .']['. $delta. '][value][link', t('You cannot enter a title without a link.'));
         }
       }
@@ -217,32 +188,34 @@ function link_widget($op, &$node, $field, &$node_field) {
  */
 
 function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
-  $form_item['value'] = array(
+  
+  $form_item = array(
     '#tree' => true,
-    '#weigth' => $field['widget']['weight'],
+    // Add a microweight to keep fields in first-in first-out order
+    '#weight' => $field['widget']['weight'].".00".$delta,
   );
-  $form_item['value']['link'] = array(
+  $form_item['url'] = array(
     '#type' => 'textfield',
     '#maxlength' => '255',
     '#title' => $field['title'] == 'none' ? t($field['widget']['label']) : t($field['widget']['label'])." ".t('URL'),
-    '#default_value' => $node_field['value']['link'],
+    '#default_value' => $node_field['url'],
     '#required' => ($delta == 0) ? $field['required'] : FALSE,
     '#description' => $field['widget']['description'],
   );
   if ($field['title'] != 'none') {
-    $form_item['value']['title'] = array(
+    $form_item['title'] = array(
       '#type' => 'textfield',
       '#maxlength' => '255',
       '#title' => t($field['widget']['label'])." ".t('Title'),
-      '#default_value' => $node_field['value']['title'],
+      '#default_value' => $node_field['title'],
       '#required' => ($delta == 0 && $field['title'] == 'required') ? $field['required'] : FALSE,
     );
   }
   if ($field['attributes']['target'] == 'user') {
-    $form_item['value']['attributes']['target'] = array(
+    $form_item['attributes']['target'] = array(
       '#type' => 'checkbox',
       '#title' => t('Open URL in a New Window'),
-      '#default_value' => $node_field['value']['attributes']['target'],
+      '#default_value' => $node_field['attributes']['target'],
       '#return_value' => "_blank",
     );
   }
@@ -250,20 +223,42 @@ function _link_widget_form (&$form_item, $field, $node_field, $delta = 0) {
 
 function _link_widget_process (&$node_field, $delta = 0) {
   // Remove the target attribute if not selected
-  if (!$node_field['value']['attributes']['target'] || $node_field['value']['attributes']['target'] == "default") {
-    unset($node_field['value']['attributes']['target']);
+  if (!$node_field['attributes']['target'] || $node_field['attributes']['target'] == "default") {
+    unset($node_field['attributes']['target']);
   }
 }
 
 /**
- * Implementation of hook_field_view() which performs any translation necessary.
+ * Implementation of hook_field_formatter_info().
  */
-function _link_field_view($field, $value, $addlfields = array(), $node = NULL) {
+function link_field_formatter_info() {
+  return array(
+    'default' => array(
+      'label' => 'Default, as link',
+      'field types' => array('link'),
+    ),
+    'plain' => array(
+      'label' => 'Plain, no link',
+      'field types' => array('link'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_field_formatter().
+ *
+ */
+function link_field_formatter($field, $item, $formatter) {
+  
+  if ($formatter == 'plain') {
+    return check_plain($item['url']);
+  }
+  
   $attributes = array();
   // Add attributes defined at the widget level
-  if (is_array($value['attributes'])) {
-    foreach($value['attributes'] as $attribute => $attbvalue) {
-      if (isset($field['attributes'][$attribute]) && $field['attributes'][$attribute] == 'user') {
+  if (is_array($item['attributes'])) {
+    foreach($item['attributes'] as $attribute => $attbvalue) {
+      if (isset($item['attributes'][$attribute]) && $field['attributes'][$attribute] == 'user') {
         $attributes[$attribute] = $attbvalue;
       }
     }
@@ -277,80 +272,14 @@ function _link_field_view($field, $value, $addlfields = array(), $node = NULL) {
     }
   }
   // Build the link with a title
-  if (strlen(trim($value['title']))) {
-    $output = l($value['title'],link_cleanup_url($value['link']),$attributes);
+  if (strlen(trim($item['title']))) {
+    $output = l($item['title'],link_cleanup_url($item['url']),$attributes);
   }
   // Build the link with the URL as the title (max 80 characters)
   else {
-    $output = l(strlen($value['link']) > 80 ? substr($value['link'],0,80)."..." : $value['link'],link_cleanup_url($value['link']),$attributes);
+    $output = l(strlen($item['url']) > 80 ? substr($item['url'],0,80)."..." : $item['url'],link_cleanup_url($item['url']),$attributes);
   }
   return $output;
-}
-
-/**
- * Implementation of hook_views_tables().
- */
-function link_views_tables() {
-  $tables = array();
-
-  $fields = content_fields();
-  foreach ($fields as $field) {
-    if ($field['type'] == 'link') {
-      $tables['node_field_link_data_'. $field['field_name']] = array(
-        'name' => 'node_field_link_data',
-        'join' => array(
-          'left' => array(
-            'table' => 'node',
-            'field' => 'vid',
-          ),
-          'right' => array(
-            'field' => 'vid',
-          ),
-            'extra' => array('field_name' => $field['field_name']),
-        ),
-        'fields' => array(
-          'field_url' => array(
-            'name' => 'Link URL: '. $field['field_name'],
-            'sortable' => TRUE,
-          ),
-          'field_title' => array(
-            'name' => 'Link Title: '. $field['field_name'],
-            'sortable' => TRUE,
-          ),
-        ),
-        'sorts' => array(
-          'field_url' => array('name' => 'Link URL: '. $field['field_name']),
-          'field_title' => array('name' => 'Link Title: '. $field['field_name']),
-        ),
-        'filters' => array(
-          'field_url' => array(
-            'name' => 'Link URL: '. $field['field_name'],
-            'operator' => array(
-              '='  => 'is',
-              'contains' => 'contains',
-              'begins' => 'begins with',
-              'ends' => 'ends wth',
-              'LIKE'  => 'matches pattern',
-            ),
-            'operator-handler' => '_text_filter_operator',
-          ),
-          'field_title' => array(
-            'name' => 'Link Title: '. $field['field_name'],
-            'operator' => array(
-              '='  => 'is',
-              'contains' => 'contains',
-              'begins' => 'begins with',
-              'ends' => 'ends wth',
-              'LIKE'  => 'matches pattern',
-            ),
-            'operator-handler' => '_text_filter_operator',
-          ),
-        ),
-      );
-    }
-  }
-
-  return $tables;
 }
 
 /**
