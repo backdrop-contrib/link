@@ -7,16 +7,6 @@
  */
 
 /**
- * Implementation of hook_help().
- */
-function link_help($section) {
-  switch ($section) {
-    case 'admin/modules#description':
-      return t('Defines simple link field types. <em>Note: Requires content.module.</em>');
-  }
-}
-
-/**
  * Implementation of hook_field_info().
  */
 function link_field_info() {
