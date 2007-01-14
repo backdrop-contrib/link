@@ -69,7 +69,7 @@ function link_field_settings($op, $field) {
       return array(
         'url' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
         'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
-        'attributes' => array('type' => 'mediumtext', 'not null' => TRUE, 'default' => "''"),
+        'attributes' => array('type' => 'mediumtext', 'not null' => FALSE),
         );
 
     case 'filters':
