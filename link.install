@@ -25,7 +25,7 @@ function link_update_1() {
         $columns = array(
           'url' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
           'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => "''"),
-          'attributes' => array('type' => 'mediumtext', 'not null' => TRUE, 'default' => "''"),
+          'attributes' => array('type' => 'mediumtext', 'not null' => FALSE),
         );
         content_alter_db_field(array(), array(), $field, $columns);
         $db_info = content_database_info($field);
@@ -33,13 +33,13 @@ function link_update_1() {
           $ret[] = update_sql('INSERT INTO {'. $db_info['table'] .'} (vid, delta, nid, '. $field['field_name'] .'_url, '. $field['field_name'] .'_title, '. $field['field_name'] ."_attributes) SELECT vid, delta, nid, field_url, field_title, attributes FROM {node_field_link_data} WHERE field_name = '". $field['field_name'] ."'");
         }
         else {
-          $ret[] = update_sql('INSERT INTO {'. $db_info['table'] .'} (vid, nid, '. $field['field_name'] .'_url, '. $field['field_name'] .'_title, '. $field['field_name'] ."_attributes) SELECT vid, nid, field_url, field_title, attributes FROM {node_field_link_data} WHERE field_name = '". $field['field_name'] ."'");
+          $ret[] = update_sql('UPDATE {'. $db_info['table'] .'} c, {node_field_link_data} l SET c.'. $field['field_name'] .'_url = l.field_url, c.'. $field['field_name'] .'_title = l.field_title, c.'. $field['field_name'] ."_attributes = l.attributes WHERE l.field_name = '". $field['field_name'] ."' AND c.vid = l.vid AND c.nid = l.nid");
         }
     }
   }
 
   $ret[] = update_sql('DROP TABLE {node_field_link_data}');
-  
+
   db_query('DELETE FROM {cache}');
   return $ret;
 }
