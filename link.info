@@ -1,5 +1,7 @@
 ; $Id$
 name = Link
 description = Defines simple link field types.
-dependencies = content
+dependencies[] = content
 package = CCK
+core = 6.x
+

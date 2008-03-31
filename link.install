@@ -5,7 +5,28 @@
  * Implementation of hook_install().
  */
 function link_install() {
-  return;
+  content_notify('install', 'link');
+}
+
+/**
+* Implementation of hook_uninstall().
+*/
+function link_uninstall() {
+  content_notify('uninstall', 'link');
+}
+
+/**
+* Implementation of hook_enable().
+*/
+function link_enable() {
+  content_notify('enable', 'link');
+}
+
+/**
+* Implementation of hook_disable().
+*/
+function link_disable() {
+  content_notify('disable', 'link');
 }
 
 /**
