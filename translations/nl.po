@@ -57,7 +57,7 @@ msgstr "URL weergave afsnijdwaarde"
 
 #: link.module:99
 msgid "If the user does not include a title for this link, the URL will be used as the title. When should the link title be trimmed and finished with an elipsis (&hellip;)? Leave blank for no limit."
-msgstr "Wanner de gebruiker geen titel ingeeft voor deze link dan zal de URL als titel gebruit worden. Wanner moet de link titel afgeknipt worden en beeindigd met een elipsis (&hellip;)? Laat leeg voor geen limiet."
+msgstr "Wanner de gebruiker geen titel ingeeft voor deze link dan zal de URL als titel gebruikt worden. Wanner moet de link titel afgeknipt worden en beeindigd met een elipsis (&hellip;)? Laat leeg voor geen limiet."
 
 #: link.module:105
 msgid "Default (no target attribute)"
@@ -93,7 +93,7 @@ msgstr "Aditionele CSS Klasse"
 
 #: link.module:128
 msgid "When output, this link will have have this class attribute. Multiple classes should be seperated by spaces."
-msgstr "Wanneer getoond, heeft deze link dit klasse attribuut. Meerdere klassen ;oeten gescheiden worden door spaties."
+msgstr "Wanneer getoond, heeft deze link dit klasse attribuut. Meerdere klassen moeten gescheiden worden door spaties."
 
 #: link.module:135
 msgid "A default title must be provided if the title is a static value"
