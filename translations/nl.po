@@ -1,6 +1,7 @@
+# $id$
 msgid ""
 msgstr ""
-"Project-Id-Version: link\n"
+"Project-Id-Version: link \n"
 "POT-Creation-Date: 2007-12-08 13:14+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Maarten Vergauwen <mverauw@gmail.com>\n"
