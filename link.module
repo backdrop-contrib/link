@@ -18,15 +18,56 @@ define('LINK_TARGET_TOP', '_top');
 define('LINK_TARGET_USER', 'user');
 
 /**
- * Implementation of hook_field_info().
+ * Implement hook_field_info().
  */
 function link_field_info() {
   return array(
     'link' => array(
       'label' => t('Link'),
       'description' => t('Store a title, href, and attributes in the database to assemble a link.'),
+      'settings' => array(
+        'target' => LINK_TARGET_DEFAULT,
+        'class' => '',
+        'rel' => '',
+      ),
+      'default_widget' => 'text_textfield',
+      'default_formatter' => 'text_default',
     ),
   );
+}
+
+/**
+ * Implement hook_field_schema().
+ */
+function link_field_schema($field) {
+  return array(
+    'columns' => array(
+      'url' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'sortable' => TRUE
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'sortable' => TRUE
+      ),
+      'attributes' => array(
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE
+      ),
+    ),
+  );
+}
+
+/**
+ * Implement hook_field_sanitize().
+ */
+function link_field_sanitize($obj_type, $object, $field, $instance, $langcode, &$items) {
+
 }
 
 /**
@@ -170,9 +211,9 @@ function theme_link_field_settings($form) {
 }
 
 /**
- * Implementation of hook_content_is_empty().
+ * Implement hook_field_is_empty().
  */
-function link_content_is_empty($item, $field) {
+function link_field_is_empty($item, $field) {
   if (empty($item['title']) && empty($item['url'])) {
     return TRUE;
   }
@@ -255,7 +296,7 @@ function _link_process(&$item, $delta = 0, $field, $node) {
 
   // if no attributes are set then make sure $item['attributes'] is an empty array - this lets $field['attributes'] override it.
   if (empty($item['attributes'])) {
-    $item['attributes'] = array(); 
+    $item['attributes'] = array();
   }
 
   // Serialize the attributes array.
@@ -428,7 +469,7 @@ function link_theme() {
 /**
  * FAPI theme for an individual text elements.
  */
-function theme_link($element) {
+function theme_link1($element) {
   drupal_add_css(drupal_get_path('module', 'link') .'/link.css');
 
   // Prefix single value link fields with the name of the field.
@@ -564,6 +605,7 @@ function link_field_formatter_info() {
  * Theme function for 'default' text field formatter.
  */
 function theme_link_formatter_default($element) {
+  //drupal_set_message('<pre>'. print_r($element['#item'], TRUE) .'</pre>');
   // Display a normal link if both title and URL are available.
   if (!empty($element['#item']['display_title']) && !empty($element['#item']['url'])) {
     return l($element['#item']['display_title'], $element['#item']['url'], $element['#item']);
