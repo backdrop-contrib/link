@@ -2,4 +2,5 @@
 name = Link
 description = Defines simple link field types.
 core = 7.x
-files[] = link.module 
+files[] = link.module
+files[] = link.install
