@@ -585,7 +585,7 @@ function link_theme() {
       'variables' => array('element' => NULL),
     ),
     'link_field' => array(
-      'variables' => array('element' => NULL),
+      'render element' => 'element',
     ),
   );
 }
@@ -593,29 +593,26 @@ function link_theme() {
 /**
  * FAPI theme for an individual text elements.
  */
-function theme_link_field($element) {
+function theme_link_field($vars) {
   drupal_add_css(drupal_get_path('module', 'link') .'/link.css');
 
+  $element = $vars['element'];
   // Prefix single value link fields with the name of the field.
   if (empty($element['#field']['multiple'])) {
-    if (isset($element['url']) && isset($element['title'])) {
-      $element['url']['#title'] = $element['#title'] .' '. $element['url']['#title'];
-      $element['title']['#title'] = $element['#title'] .' '. $element['title']['#title'];
-    }
-    elseif ($element['url']) {
-      $element['url']['#title'] = $element['#title'];
+    if (isset($element['url']) && !isset($element['title'])) {
+      unset($element['url']['#title']);
     }
   }
 
   $output = '';
-  $output .= '<div class="link-field-subrow clear-block">';
+  $output .= '<div class="link-field-subrow clearfix">';
   if (isset($element['title'])) {
-    $output .= '<div class="link-field-title link-field-column">'. theme('textfield', $element['title']) .'</div>';
+    $output .= '<div class="link-field-title link-field-column">'. drupal_render($element['title']) .'</div>';
   }
-  $output .= '<div class="link-field-url'. (isset($element['title']) ? ' link-field-column' : '') .'">'. theme('textfield', $element['url']) .'</div>';
+  $output .= '<div class="link-field-url'. (isset($element['title']) ? ' link-field-column' : '') .'">'. drupal_render($element['url']) .'</div>';
   $output .= '</div>';
   if (!empty($element['attributes']['target'])) {
-    $output .= '<div class="link-attributes">'. theme('checkbox', $element['attributes']['target']) .'</div>';
+    $output .= '<div class="link-attributes">'. drupal_render($element['attributes']['target']) .'</div>';
   }
   return $output;
 }
@@ -628,6 +625,8 @@ function link_element_info() {
   $elements['link_field'] =  array(
     '#input' => TRUE,
     '#process' => array('link_field_process'),
+    '#theme' => 'link_field',
+    '#theme_wrappers' => array('form_element'),
   );
   return $elements;
 }
@@ -654,7 +653,6 @@ function link_field_process($element, $form_state, $form) {
     '#type' => 'textfield',
     '#maxlength' => LINK_URL_MAX_LENGTH,
     '#title' => t('URL'),
-    '#description' => $element['#description'],
     '#required' => ($element['#delta'] == 0 && $settings['url'] !== 'optional') ? $element['#required'] : FALSE,
     '#default_value' => isset($element['#value']['url']) ? $element['#value']['url'] : NULL,
   );
