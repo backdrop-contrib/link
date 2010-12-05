@@ -415,7 +415,8 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
   $item['attributes'] = serialize($item['attributes']);
 
   // Don't save an invalid default value (e.g. 'http://').
-  if ((isset($field['widget']['default_value'][$delta]['url']) && $item['url'] == $field['widget']['default_value'][$delta]['url']) && is_object($node)) {
+  if ((isset($field['widget']['default_value'][$delta]['url']) && $item['url'] == $field['widget']['default_value'][$delta]['url'])
+      && is_object($node)) {
     if (!link_validate_url($item['url'])) {
       unset($item['url']);
     }
@@ -485,11 +486,11 @@ function _link_sanitize(&$item, $delta, &$field, &$node) {
   }
   // Separate out the query string if any.
   if (strpos($url, '?') !== FALSE) {
-    $item['query'] = substr($url, strpos($url, '?') + 1);
+    $query = substr($url, strpos($url, '?') + 1);
+    parse_str($query, $query_array);
+    $item['query'] = $query_array;
     $url = substr($url, 0, strpos($url, '?'));
   }
-  // Save the new URL without the anchor or query.
-  $item['url'] = $url;
 
   // Create a shortened URL for display.
   $display_url = $type == LINK_EMAIL ? str_replace('mailto:', '', $url) : url($url, array('query' => isset($item['query']) ? $item['query'] : NULL, 'fragment' => isset($item['fragment']) ? $item['fragment'] : NULL, 'absolute' => TRUE));
@@ -500,12 +501,13 @@ function _link_sanitize(&$item, $delta, &$field, &$node) {
 
   // Use the title defined at the field level.
   if ($field['settings']['title'] == 'value' && strlen(trim($field['settings']['title_value']))) {
-    $item['title'] = $field['settings']['title_value'];
+    $title = $field['settings']['title_value'];
   }
   // Use the title defined by the user at the widget level.
-  else {
+  else if (isset($item['title'])) {
     $title = $item['title'];
   }
+  
   // Replace tokens.
   if (module_exists('token') && ($field['title'] == 'value' || $field['enable_tokens'])) {
     // Load the node if necessary for nodes in views.
@@ -513,7 +515,7 @@ function _link_sanitize(&$item, $delta, &$field, &$node) {
     $title = filter_xss(token_replace($title, 'node', $token_node), array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
     $item['html'] = TRUE;
   }
-  $item['display_title'] = empty($title) ? $item['display_url'] : $title;
+  $item['title'] = empty($title) ? $item['display_url'] : $title;
 
   if (!isset($item['attributes'])) {
     $item['attributes'] = array();
@@ -550,12 +552,14 @@ function _link_sanitize(&$item, $delta, &$field, &$node) {
   $item['attributes'] = array_filter($item['attributes']);
 
   // Sets title to trimmed url if one exists
+  // @TODO: Do we need this?  It seems not.
   if(!empty($item['display_url']) && empty($item['title'])) {
     $item['title'] = $item['display_url'];
   }
   elseif(!isset($item['title'])) {
     $item['title'] = $item['url'];
   }
+  
 }
 
 /**
