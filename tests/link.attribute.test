@@ -12,7 +12,7 @@ module_load_include('test', 'content', 'tests/content.crud');
 class LinkAttributeCrudTest extends ContentCrudTestCase {
 
   private $zebra;
-  
+
   public $permissions = array(
       'access content',
       'administer content types',
@@ -20,7 +20,7 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
       'administer filters',
       'access comments',
       'post comments',
-      'post comments without approval',
+      'skip comment approval',
       'access administration pages',
   );
 
@@ -31,13 +31,13 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
       'group' => t('Link'),
     );
   }
-  
+
   function setup() {
     $this->zebra = 0;
     parent::setup('link', 'views');
     $this->loginWithPermissions($this->permissions);
   }
-  
+
   function createLink($url, $title, $attributes = array()) {
     return array(
       'url' => $url,
@@ -45,7 +45,7 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
       'attributes' => $attributes,
     );
   }
-  
+
   private function outputScreenContents($description, $basename) {
     // This is a hack to get a directory that won't be cleaned up by simpletest
     $file_dir = file_directory_path().'/../simpletest_output_pages';
@@ -56,8 +56,8 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
     $rv = file_put_contents($output_path, $this->drupalGetContent());
     $this->pass("$description: Contents of result page are ".l('here',$output_path));
   }
-  
-  private function assertLinkOnNode($field_name, $link_value, $message = '', $group = 'Other') {    
+
+  private function assertLinkOnNode($field_name, $link_value, $message = '', $group = 'Other') {
     $this->zebra++;
     $zebra_string = ($this->zebra % 2 == 0) ? 'even' : 'odd';
     $cssFieldLocator = 'field-'. str_replace('_', '-', $field_name);
@@ -65,7 +65,7 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
                          $message,
                          $group);
   }
-  
+
   /**
    * A simple test that just creates a new node type, adds a link field to it, creates a new node of that type, and makes sure
    * that the node is being displayed.
@@ -94,14 +94,14 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
     // Does this display on the node page?
     $this->drupalGet('node/'. $this->nodes[0]->nid);
     $this->assertLinkOnNode($field['field_name'], l('Test Link', 'http://www.example.com'));
-    
+
     // Does this display on the front page?
     $this->drupalGet('<front>');
     // reset the zebra!
     $this->zebra = 0;
     $this->assertLinkOnNode($field['field_name'], l('Test Link', 'http://www.example.com'));
   }
-  
+
   /**
    * This test sees that we can create a link field with a defined class, and make sure
    * that class displays properly when the link is displayed.
@@ -118,28 +118,28 @@ class LinkAttributeCrudTest extends ContentCrudTestCase {
         'rel' => FALSE,
       ),
     );
-    
+
     $field = $this->createField($field_settings, 0);
     //$this->pass('<pre>'. print_r($field, TRUE) .'</pre>');
     $field_db_info = content_database_info($field);
 
     $this->acquireNodes(2);
-    
+
     $node = node_load($this->nodes[0]->nid);
     $node->promote = 1; // We want this to show on front page for the teaser test.
     $node->{$field['field_name']}[0] = $this->createLink('http://www.example.com', 'Test Link');
     node_save($node);
-    
+
     // Does this display on the node page?
     $this->drupalGet('node/'. $this->nodes[0]->nid);
     //$this->outputScreenContents('Link field with class', 'link_');
     $this->assertLinkOnNode($field['field_name'], l('Test Link', 'http://www.example.com', array('attributes' => array('class' => 'test-class'))));
-    
+
     // Does this display on the front page?
     $this->drupalGet('<front>');
     // reset the zebra!
     $this->zebra = 0;
     $this->assertLinkOnNode($field['field_name'], l('Test Link', 'http://www.example.com', array('attributes' => array('class' => 'test-class'))));
   }
-  
+
 }
