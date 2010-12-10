@@ -128,6 +128,19 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
     $account = $this->drupalCreateUser($permissions);
     $this->drupalLogin($account);
     
+    // Go to page.
+    $this->drupalGet('node/add/'. $content_type_machine);
+    
+    // Add a node.
+    $edit = array(
+      'title' => $title,
+      'field_'. $single_field_name_machine. '[und][0][title]' => 'Link',
+      'field_'. $single_field_name_machine. '[und][0][url]' => 'http://www.drupal.org/',
+    );
+    
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText(t('@content_type_friendly @title has been created', array('@content_type_friendly' => $content_type_friendly, '@title' => $title)));
+
     /*$field_settings = array(
       'type' => 'link',
       'widget_type' => 'link',
@@ -165,6 +178,9 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
     $this->drupalPost(NULL, $edit, t('Save'));
     $this->assertText(t('@content_type_friendly @title has been created', array('@content_type_friendly' => $content_type_friendly, '@title' => $title)));
 
+    $this->assertText('Display');
+    //$this->assertText('http://www.example.com/');
+    $this->assertLinkByHref('http://www.example.com');
   }
     
   /*  
@@ -175,13 +191,13 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
     // Does this display on the node page?
     $this->drupalGet('node/'. $test_nid);
     $this->assertLinkOnNode($single_field_name_machine, l('Test Link', 'http://www.example.com'));
-
+  
     // Does this display on the front page?
     $this->drupalGet('<front>');
     // reset the zebra!
     $this->zebra = 0;
     $this->assertLinkOnNode($single_field_name_machine, l('Test Link', 'http://www.example.com'));
-  }*/
+}*/
 
   /**
    * This test sees that we can create a link field with a defined class, and make sure
