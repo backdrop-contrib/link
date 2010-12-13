@@ -2,10 +2,17 @@
 name = Link
 description = Defines simple link field types.
 core = 7.x
+package = Fields
+
 files[] = link.module
 files[] = link.install
+; Tests
 files[] = tests/link.crud.test
 files[] = tests/link.attribute.test
+
+; Views Handlers
+files[] = views/link_views_handler_argument_target.inc
+files[] = views/link_views_handler_filter_protocol.inc
 
 ; Information added by drupal.org packaging script on 2010-10-18
 version = "7.x-1.x-dev"
