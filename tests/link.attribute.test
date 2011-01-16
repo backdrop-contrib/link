@@ -11,14 +11,14 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
   private $zebra;
 
   public $permissions = array(
-      'access content',
-      'administer content types',
-      'administer nodes',
-      'administer filters',
-      'access comments',
-      'post comments',
-      'skip comment approval',
-      'access administration pages',
+    'access content',
+    'administer content types',
+    'administer nodes',
+    'administer filters',
+    'access comments',
+    'post comments',
+    'skip comment approval',
+    'access administration pages',
   );
 
   function getInfo() {
