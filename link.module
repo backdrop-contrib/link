@@ -822,3 +822,25 @@ function link_validate_url($text) {
 
   return FALSE;
 }
+
+/**
+ * Implements hook_migrate_field_alter().
+ */
+function link_content_migrate_field_alter(&$field_value, $instance_value) {
+  if ($field_value['type'] == 'link') {
+    // need to change the type:
+    $field_value['type'] = 'link_field';
+  }
+}
+
+/**
+ * Implements hook_migrate_instance_alter().
+ *
+ * Widget type also changed to link_field.
+ */
+function link_content_migrate_instance_alter(&$instance_value, $field_value) {
+  if ($instance_value['widget']['module'] == 'link'
+      && $instance_value['widget']['type'] == 'link') {
+    $instance_value['widget']['type'] = 'link_field';
+  }
+}
