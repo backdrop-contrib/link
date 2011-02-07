@@ -7,25 +7,12 @@
  */
 
 // Let's include the parent class.
-module_load_include('test', 'content', 'tests/content.crud');
+module_load_include('inc', 'link', 'tests/link.base-test');
 
-class LinkValidateTestCase extends DrupalWebTestcase {
-    public $permissions = array(
-      'access content',
-      'administer content types',
-      'administer nodes',
-      'administer filters',
-      'access comments',
-      'post comments',
-      'access administration pages',
-      'create page content',
-  );
+class LinkValidateTestCase extends LinkBaseTestClass {
     
   function setUp() {
-    parent::setUp('field_ui', 'link');
-    //$this->loginWithPermissions($this->permissions);
-    $account = $this->drupalCreateUser($this->permissions);
-    $this->drupalLogin($account);
+    parent::setUp();
   }
   
   function createLink($url, $title, $attributes = array()) {
@@ -39,50 +26,9 @@ class LinkValidateTestCase extends DrupalWebTestcase {
   /**
    * Takes a url, and sees if it can validate that the url is valid.
    */
-  function link_test_validate_url($url) {
-    /*$this->acquireContentTypes(1);
-    variable_set('node_options_'. $this->content_types[0]->name, array('status', 'promote'));
-    $field_settings = array(
-      'type' => 'link',
-      'widget_type' => 'link',
-      'type_name' => $this->content_types[0]->name,
-      'attributes' => array(), // <-- This is needed or we have an error.
-      'validate_url' => 1,
-    );
-
-    $field = $this->createField($field_settings, 0);
-    //$this->fail('<pre>'. print_r($field, TRUE) .'</pre>');
-
-    $field_db_info = content_database_info($field);
-
-    $this->acquireNodes(1);
-    //$this->fail("We now have ". count($this->nodes) ." nodes.");
+  public function link_test_validate_url($url) {
     
-    $node = node_load($this->nodes[0]->nid);
-    
-    $this->drupalGet('node/'. $this->nodes[0]->nid);
-    
-    $edit = array();
-    $edit[$field['field_name'] .'[0][url]'] = $url;
-    
-    $this->drupalPost('node/'. $this->nodes[0]->nid .'/edit', $edit, t('Save'));*/
-    
-    $name = strtolower($this->randomName());
-    $edit = array(
-      'fields[_add_new_field][label]' => $name,
-      'fields[_add_new_field][field_name]' => $name,
-      'fields[_add_new_field][type]' => 'link_field',
-      'fields[_add_new_field][widget_type]' => 'link_field',
-    );
-    $field_name = 'field_'. $name;
-    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
-    $this->drupalPost(NULL, array(), t('Save field settings'));
-    $this->drupalPost(NULL, array(), t('Save settings'));
-
-    // Is field created?
-    $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
-    node_types_rebuild();
-    menu_rebuild();
+    $field_name = $this->createLinkField();
     
     $permission = 'create page content';
     $this->checkPermissions(array($permission), TRUE);
@@ -97,11 +43,8 @@ class LinkValidateTestCase extends DrupalWebTestcase {
     );
     $this->drupalPost(NULL, $edit, t('Save'));
     $this->assertRaw(t(' has been created.'), 'Node created');
-    //$url = $this->getUrl();
-    //$this->assert('debug', $url, 'Debug');
-    //preg_match('/\/(\d*)/', $url, $matches);
+    
     $nid = 1; //$matches[1];
-    //$this->assert('debug', print_r($matches, TRUE), 'Debug');
     
     $node = node_load($nid);
     
