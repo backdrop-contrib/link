@@ -95,24 +95,34 @@ function link_field_instance_settings_form($field, $instance) {
     '#description' => t('This title will always be used if &ldquo;Static Title&rdquo; is selected above.'),
   );
 
- // Add token module replacements fields
-  $form['tokens'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#title' => t('Placeholder tokens'),
-    '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
-  );
-  $form['tokens']['help'] = array(
-    '#value' => theme('token_help', 'node'),
-  );
+  if (module_exists('token')) {
+    // Add token module replacements fields
+    $form['tokens'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Placeholder tokens'),
+      '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
+    );
+    $token_type = array(
+      'theme' => 'token_tree',
+      'token_types' => array($instance['entity_type']),
+      'global_types' => TRUE,
+      'click_insert' => TRUE,
+      'recursion_limit' => 2,
+    );
+    $form['tokens']['help'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('token_tree', $token_type),
+    );
 
-  $form['enable_tokens'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow user-entered tokens'),
-    '#default_value' => isset($instance['settings']['enable_tokens']) ? $instance['settings']['enable_tokens'] : 1,
-    '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the node edit form. This does not affect the field settings on this page.'),
-  );
+    $form['enable_tokens'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user-entered tokens'),
+      '#default_value' => isset($instance['settings']['enable_tokens']) ? $instance['settings']['enable_tokens'] : 1,
+      '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the node edit form. This does not affect the field settings on this page.'),
+    );
+  }
 
   $form['display'] = array(
     '#tree' => TRUE,
@@ -377,7 +387,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   else {
     $title = '';
   }
-  
+
   // Replace tokens.
   if ($title && ($instance['settings']['title'] == 'value' || $instance['settings']['enable_tokens'])) {
     // Load the node if necessary for nodes in views.
@@ -435,7 +445,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   elseif(!isset($item['title'])) {
     $item['title'] = $item['url'];
   }*/
-  
+
 }
 
 /**
