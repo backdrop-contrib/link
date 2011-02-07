@@ -287,7 +287,10 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
  * Validates that the link field has been entered properly.
  */
 function _link_validate(&$item, $delta, $field, $node, $instance, &$optional_field_found) {
-  if ($item['url'] && !(isset($instance['default_value'][$delta]['url']) && $item['url'] === $instance['default_value'][$delta]['url'] && !$item['required'])) {
+  if ($item['url']
+                    && !(isset($instance['default_value'][$delta]['url'])
+                        && $item['url'] === $instance['default_value'][$delta]['url']
+                        && !$instance['required'])) {
     // Validate the link.
     if (link_validate_url(trim($item['url'])) == FALSE) {
       form_set_error($field['field_name'] .']['. $delta .'][url', t('Not a valid URL.'));
@@ -340,6 +343,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   // Replace URL tokens.
   if ($instance['settings']['enable_tokens']) {
+    global $user;
     // Load the node if necessary for nodes in views.
     $token_node = isset($node->nid) ? node_load($node->nid) : $node;
     $item['url'] = token_replace($item['url'], array('node' => $token_node));
