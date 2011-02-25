@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Contains functions handling views integration.
