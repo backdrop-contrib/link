@@ -867,3 +867,10 @@ function link_content_migrate_instance_alter(&$instance_value, $field_value) {
     $instance_value['widget']['type'] = 'link_field';
   }
 }
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function link_field_settings_form() {
+  return array();
+}
