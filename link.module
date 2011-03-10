@@ -351,7 +351,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   }
 
   // Replace URL tokens.
-  if ($instance['settings']['enable_tokens']) {
+  if (isset($instance['settings']['enable_tokens']) && $instance['settings']['enable_tokens']) {
     global $user;
     // Load the node if necessary for nodes in views.
     $token_node = isset($node->nid) ? node_load($node->nid) : $node;
