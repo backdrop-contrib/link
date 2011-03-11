@@ -360,6 +360,8 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   $type = link_validate_url($item['url']);
   $url = link_cleanup_url($item['url']);
+  
+  //dpm(array($type, $url));
 
   // Separate out the anchor if any.
   if (strpos($url, '#') !== FALSE) {
@@ -373,6 +375,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
     $item['query'] = $query_array;
     $url = substr($url, 0, strpos($url, '?'));
   }
+  $item['url'] = check_plain($url);
 
   // Create a shortened URL for display.
   $display_url = $type == LINK_EMAIL ?
@@ -642,16 +645,19 @@ function link_field_formatter_view($entity_type, $entity, $field, $instance, $la
  * Theme function for 'default' text field formatter.
  */
 function theme_link_formatter_default($vars) {
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
   // Display a normal link if both title and URL are available.
   if (!empty($vars['element']['title']) && !empty($vars['element']['url'])) {
-    return l($vars['element']['title'], $vars['element']['url'], array('attributes' => $vars['element']['attributes']));
+    return l($vars['element']['title'], $vars['element']['url'], $link_options);
   }
   // If only a title, display the title.
   elseif (!empty($vars['element']['title'])) {
     return check_plain($vars['element']['title']);
   }
   elseif (!empty($vars['element']['url'])) {
-    return l($vars['element']['title'], $vars['element']['url'], array('attributes' => $vars['element']['attributes']));
+    return l($vars['element']['title'], $vars['element']['url'], $link_options);
   }
 }
 
