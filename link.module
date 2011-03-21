@@ -665,28 +665,42 @@ function theme_link_formatter_default($vars) {
  * Theme function for 'plain' text field formatter.
  */
 function theme_link_formatter_plain($vars) {
-  return empty($vars['element']['url']) ? check_plain($vars['element']['title']) : url($vars['element']['url'], array('attributes' => $vars['element']['attributes']));
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
+  return empty($vars['element']['url']) ?
+    check_plain($vars['element']['title']) :
+    url($vars['element']['url'], $link_options);
 }
 
 /**
  * Theme function for 'url' text field formatter.
  */
 function theme_link_formatter_url($vars) {
-  return $vars['element']['url'] ? l($vars['element']['display_url'], $vars['element']['url'], array('attributes' => $vars['element']['attributes'])) : '';
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
+  return $vars['element']['url'] ? l($vars['element']['display_url'], $vars['element']['url'], $link_options) : '';
 }
 
 /**
  * Theme function for 'short' text field formatter.
  */
 function theme_link_formatter_short($vars) {
-  return $vars['element']['url'] ? l(t('Link'), $vars['element']['url'], array('attributes' => $vars['element']['attributes'])) : '';
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
+  return $vars['element']['url'] ? l(t('Link'), $vars['element']['url'], $link_options) : '';
 }
 
 /**
  * Theme function for 'label' text field formatter.
  */
 function theme_link_formatter_label($vars) {
-  return $vars['element']['url'] ? l($vars['field']['label'], $vars['element']['url'], array('attributes' => $vars['element']['attributes'])) : '';
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
+  return $vars['element']['url'] ? l($vars['field']['label'], $vars['element']['url'], $link_options) : '';
 }
 
 /**
@@ -696,6 +710,9 @@ function theme_link_formatter_label($vars) {
 function theme_link_formatter_separate($vars) {
   $class = empty($vars['element']['attributes']['class']) ? '' : ' '. $vars['element']['attributes']['class'];
   unset($vars['element']['attributes']['class']);
+  $link_options = $vars['element'];
+  unset($link_options['element']['title']);
+  unset($link_options['element']['url']);
   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
 
   $output = '';
@@ -703,7 +720,7 @@ function theme_link_formatter_separate($vars) {
   if (!empty($title)) {
     $output .= '<div class="link-title">'. $title .'</div>';
   }
-  $output .= '<div class="link-url">'. l($vars['element']['url'], $vars['element']['url'], array('attributes' => $vars['element']['attributes'])) .'</div>';
+  $output .= '<div class="link-url">'. l($vars['element']['url'], $vars['element']['url'], $link_options) .'</div>';
   $output .= '</div>';
   return $output;
 }
