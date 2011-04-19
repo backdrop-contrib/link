@@ -18,7 +18,7 @@ define('LINK_TARGET_TOP', '_top');
 define('LINK_TARGET_USER', 'user');
 
 /**
- * Maximum URLs length.
+ * Maximum URLs length - needs to match value in link.install.
  */
 define('LINK_URL_MAX_LENGTH', 2048);
 
@@ -360,7 +360,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   $type = link_validate_url($item['url']);
   $url = link_cleanup_url($item['url']);
-  
+
   //dpm(array($type, $url));
 
   // Separate out the anchor if any.

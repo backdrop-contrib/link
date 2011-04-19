@@ -13,7 +13,7 @@ function link_field_schema($field) {
     'columns' => array(
       'url' => array(
         'type' => 'varchar',
-        'length' => LINK_URL_MAX_LENGTH,
+        'length' => 2048, // Maximum URLs length.
         'not null' => FALSE,
         'sortable' => TRUE
       ),
