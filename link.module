@@ -18,7 +18,7 @@ define('LINK_TARGET_TOP', '_top');
 define('LINK_TARGET_USER', 'user');
 
 /**
- * Maximum URLs length.
+ * Maximum URLs length - needs to match value in link.install.
  */
 define('LINK_URL_MAX_LENGTH', 2048);
 
@@ -360,7 +360,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   $type = link_validate_url($item['url']);
   $url = link_cleanup_url($item['url']);
-  
+
   //dpm(array($type, $url));
 
   // Separate out the anchor if any.
@@ -554,7 +554,8 @@ function _link_default_attributes() {
  * The $fields array is in $complete_form['#field_info'][$element['#field_name']].
  */
 function link_field_process($element, $form_state, $complete_form) {
-  $settings = &$form_state['field'][$element['#field_name']][$element['#language']]['instance']['settings'];
+  $instance = field_widget_instance($element, $form_state);
+  $settings = $instance['settings'];
   $element['url'] = array(
     '#type' => 'textfield',
     '#maxlength' => LINK_URL_MAX_LENGTH,
