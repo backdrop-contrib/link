@@ -38,3 +38,42 @@ function link_field_schema($field) {
 function link_update_last_removed() {
   return 6001;
 }
+
+/**
+ * Handles moving settings data from field_config.data to field_config_instance.data.
+ */
+function link_update_7000() {
+  
+  // For each field that is a link field, we need to copy the settings from the general field level down to the instance.
+  //$field_data = array();
+  $result = db_query("SELECT id, field_name, data FROM {field_config} WHERE module = 'link' AND type = 'link_field'");
+  foreach ($result as $field) {
+    $field_id = $field->id;
+    $name = $field->field_name;
+    $field_data = unserialize($field->data);
+    
+    $instances = db_query("SELECT id, data FROM {field_config_instance} WHERE field_id = :field_id", array(':field_id' => $field_id));
+    foreach ($instances as $instance) {
+      // If this field has been updated already, we want to skip it.
+      $instance_data = unserialize($instance->data);
+      $update_instance = FALSE;
+      if (!isset($instance_data['settings']['title'])) {
+        foreach ($field_data['settings'] as $key => $value) {
+          if (!isset($instance_data['settings'][$key])) {
+            $instance_data['settings'][$key] = $value;
+            $update_instance = TRUE;
+          }
+        }
+        if ($update_instance) {
+          // update the database.
+          $num_updated = db_update('field_config_instance')
+            ->fields(array('data' => serialize($instance_data)))
+            ->condition('id', $instance->id)
+            ->execute();
+        }
+      }
+    }
+  }
+  
+  return t("Instance settings have been set with the data from the field settings.");
+}
