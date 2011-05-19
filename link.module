@@ -51,7 +51,7 @@ function link_field_info() {
         ),
       ),
       'default_widget' => 'link_field',
-      'default_formatter' => 'default',
+      'default_formatter' => 'link_default',
     ),
   );
 }
@@ -472,22 +472,22 @@ function link_theme() {
     /*'link_field_settings' => array(
       'variables' => array('element' => NULL),
     ),*/
-    'link_formatter_default' => array(
+    'link_formatter_link_default' => array(
       'variables' => array('element' => NULL),
     ),
-    'link_formatter_plain' => array(
+    'link_formatter_link_plain' => array(
       'variables' => array('element' => NULL),
     ),
-    'link_formatter_url' => array(
+    'link_formatter_link_url' => array(
       'variables' => array('element' => NULL),
     ),
-    'link_formatter_short' => array(
+    'link_formatter_link_short' => array(
       'variables' => array('element' => NULL),
     ),
-    'link_formatter_label' => array(
+    'link_formatter_link_label' => array(
       'variables' => array('element' => NULL),
     ),
-    'link_formatter_separate' => array(
+    'link_formatter_link_separate' => array(
       'variables' => array('element' => NULL),
     ),
     'link_field' => array(
@@ -596,32 +596,32 @@ function link_field_process($element, $form_state, $complete_form) {
  */
 function link_field_formatter_info() {
   return array(
-    'default' => array(
+    'link_default' => array(
       'label' => t('Title, as link (default)'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
-    'url' => array(
+    'link_url' => array(
       'label' => t('URL, as link'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
-    'plain' => array(
+    'link_plain' => array(
       'label' => t('URL, as plain text'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
-    'short' => array(
+    'link_short' => array(
       'label' => t('Short, as link with title "Link"'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
-    'label' => array(
+    'link_label' => array(
       'label' => t('Label, as link with label as title'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
-    'separate' => array(
+    'link_separate' => array(
       'label' => t('Separate title and URL'),
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
@@ -645,7 +645,7 @@ function link_field_formatter_view($entity_type, $entity, $field, $instance, $la
 /**
  * Theme function for 'default' text field formatter.
  */
-function theme_link_formatter_default($vars) {
+function theme_link_formatter_link_default($vars) {
   $link_options = $vars['element'];
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
@@ -665,7 +665,7 @@ function theme_link_formatter_default($vars) {
 /**
  * Theme function for 'plain' text field formatter.
  */
-function theme_link_formatter_plain($vars) {
+function theme_link_formatter_link_plain($vars) {
   $link_options = $vars['element'];
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
@@ -677,7 +677,7 @@ function theme_link_formatter_plain($vars) {
 /**
  * Theme function for 'url' text field formatter.
  */
-function theme_link_formatter_url($vars) {
+function theme_link_formatter_link_url($vars) {
   $link_options = $vars['element'];
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
@@ -687,7 +687,7 @@ function theme_link_formatter_url($vars) {
 /**
  * Theme function for 'short' text field formatter.
  */
-function theme_link_formatter_short($vars) {
+function theme_link_formatter_link_short($vars) {
   $link_options = $vars['element'];
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
@@ -697,7 +697,7 @@ function theme_link_formatter_short($vars) {
 /**
  * Theme function for 'label' text field formatter.
  */
-function theme_link_formatter_label($vars) {
+function theme_link_formatter_link_label($vars) {
   $link_options = $vars['element'];
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
@@ -708,7 +708,7 @@ function theme_link_formatter_label($vars) {
  * Theme function for 'separate' text field formatter.
  */
 
-function theme_link_formatter_separate($vars) {
+function theme_link_formatter_link_separate($vars) {
   $class = empty($vars['element']['attributes']['class']) ? '' : ' '. $vars['element']['attributes']['class'];
   unset($vars['element']['attributes']['class']);
   $link_options = $vars['element'];
