@@ -49,6 +49,7 @@ function link_field_info() {
         'display' => array(
           'url_cutoff' => 80,
         ),
+        'validate_url' => 1,
       ),
       'default_widget' => 'link_field',
       'default_formatter' => 'link_default',
@@ -62,6 +63,13 @@ function link_field_info() {
 function link_field_instance_settings_form($field, $instance) {
   $form = array(
     '#element_validate' => array('link_field_settings_form_validate'),
+  );
+  
+  $form['validate_url'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Validate URL'),
+    '#default_value' => isset($instance['settings']['validate_url']) && ($instance['settings']['validate_url'] !== '') ? $instance['settings']['validate_url'] : TRUE,
+    '#description' => t('If checked, the URL field will be verified as a valid URL during validation.'),
   );
 
   $form['url'] = array(
@@ -201,8 +209,14 @@ function link_field_load($entity_type, $entities, $field, $instances, $langcode,
  */
 function link_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   $optional_field_found = FALSE;
-  foreach ($items as $delta => $value) {
-    _link_validate($items[$delta], $delta, $field, $entity, $instance, $optional_field_found);
+  if ($instance['settings']['validate_url'] !== 0 || is_null($instance['settings']['validate_url']) || !isset($instance['settings']['validate_url'])) {
+    foreach ($items as $delta => $value) {
+      _link_validate($items[$delta], $delta, $field, $entity, $instance, $optional_field_found);
+    }
+  }
+
+  if ($instance['settings']['url'] == 'optional' && $instance['settings']['title'] == 'optional' && $instance['required'] && !$optional_field_found) {
+    form_set_error($field['field_name'] .'][0][title', t('At least one title or URL must be entered.'));
   }
 }
 
@@ -359,9 +373,12 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   }
 
   $type = link_validate_url($item['url']);
+  // If we can't determine the type of url, and we've been told not to validate it,
+  // then we assume it's a LINK_EXTERNAL type for later processing. #357604
+  if ($type == FALSE && $instance['settings']['validate_url'] === 0) {
+    $type = LINK_EXTERNAL;
+  }
   $url = link_cleanup_url($item['url']);
-
-  //dpm(array($type, $url));
 
   // Separate out the anchor if any.
   if (strpos($url, '#') !== FALSE) {
@@ -375,6 +392,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
     $item['query'] = $query_array;
     $url = substr($url, 0, strpos($url, '?'));
   }
+
   $item['url'] = check_plain($url);
 
   // Create a shortened URL for display.
