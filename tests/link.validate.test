@@ -480,6 +480,9 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
     foreach ($links as $link) {
       $valid = link_validate_url($link);
       $this->assertEqual(LINK_EXTERNAL, $valid, 'Testing that '. $link .' is a valid external link.');
+      // The following two lines are commented out and only used for comparisons.
+      //$valid2 = valid_url($link, TRUE);
+      //$this->assertEqual(TRUE, $valid2, "Using valid_url() on $link.");
     }
   }
   
