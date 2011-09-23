@@ -496,6 +496,9 @@ function link_theme() {
     'link_formatter_link_plain' => array(
       'variables' => array('element' => NULL),
     ),
+    'link_formatter_link_title_plain' => array(
+      'variables' => array('element' => NULL),
+    ),
     'link_formatter_link_url' => array(
       'variables' => array('element' => NULL),
     ),
@@ -619,6 +622,11 @@ function link_field_formatter_info() {
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
+    'link_title_plain' => array(
+      'label' => t('Title, as plain text'),
+      'field types' => array('link_field'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
     'link_url' => array(
       'label' => t('URL, as link'),
       'field types' => array('link_field'),
@@ -690,6 +698,13 @@ function theme_link_formatter_link_plain($vars) {
   return empty($vars['element']['url']) ?
     check_plain($vars['element']['title']) :
     url($vars['element']['url'], $link_options);
+}
+
+/**
+ * Theme function for 'title_plain' text field formatter.
+ */
+function theme_link_formatter_link_title_plain($vars) {
+  return empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
 }
 
 /**
