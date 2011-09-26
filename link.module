@@ -495,7 +495,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
   // Remove title attribute if it's equal to link text.
-  if ($item['attributes']['title'] == $item['title']) {
+  if (isset($item['attributes']['title']) && $item['attributes']['title'] == $item['title']) {
     unset($item['attributes']['title']);
   }
   unset($item['attributes']['configurable_title']);
