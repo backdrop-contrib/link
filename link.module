@@ -619,7 +619,8 @@ function link_field_process($element, $form_state, $complete_form) {
       '#type' => 'textfield',
       '#maxlength' => '255',
       '#title' => t('Title'),
-      '#required' => ($settings['title'] == 'required' && !empty($element['#value']['url'])) ? TRUE : FALSE,
+  /*  '#required' => ($settings['title'] == 'required' && !empty($element['#value']['url'])) ? TRUE : FALSE, */
+      '#required' => ($settings['title'] == 'required' && (($element['#delta'] == 0 && $element['#required']) || !empty($element['#value']['url']))) ? TRUE : FALSE, // davereids patch from jan 2011
       '#default_value' => isset($element['#value']['title']) ? $element['#value']['title'] : NULL,
     );
   }
@@ -628,7 +629,7 @@ function link_field_process($element, $form_state, $complete_form) {
   if (!is_array($settings['attributes'])) {
     $settings['attributes'] = array();
   }
-  // Add default atrributes.
+  // Add default attributes.
   $settings['attributes'] += _link_default_attributes();
   $attributes = isset($element['#value']['attributes']) ? $element['#value']['attributes'] : $settings['attributes'];
   if (!empty($settings['attributes']['target']) && $settings['attributes']['target'] == LINK_TARGET_USER) {
@@ -648,6 +649,11 @@ function link_field_process($element, $form_state, $complete_form) {
       '#field_suffix' => '"',
     );
   }
+
+  // To prevent an extra required indicator, disable the required flag on the
+  // base element since all the sub-fields are already required if desired.
+  $element['#required'] = FALSE; // davereids patch from jan 2011
+
   return $element;
 }
 
