@@ -309,7 +309,9 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
   }
 
   // Serialize the attributes array.
-  $item['attributes'] = serialize($item['attributes']);
+  if (!is_string($item['attributes'])) {
+    $item['attributes'] = serialize($item['attributes']);
+  }
 
   // Don't save an invalid default value (e.g. 'http://').
   if ((isset($field['widget']['default_value'][$delta]['url']) && $item['url'] == $field['widget']['default_value'][$delta]['url'])
