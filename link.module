@@ -173,7 +173,7 @@ function link_field_instance_settings_form($field, $instance) {
   $form['attributes']['class'] = array(
     '#type' => 'textfield',
     '#title' => t('Additional CSS Class'),
-    '#description' => t('When output, this link will have have this class attribute. Multiple classes should be separated by spaces.'),
+    '#description' => t('When output, this link will have this class attribute. Multiple classes should be separated by spaces.'),
     '#default_value' => empty($instance['settings']['attributes']['class']) ? '' : $instance['settings']['attributes']['class'],
   );
   $form['attributes']['configurable_title'] = array(
@@ -232,7 +232,7 @@ function link_field_validate($entity_type, $entity, $field, $instance, $langcode
     }
   }
 
-  if ($instance['settings']['url'] == 'optional' && $instance['settings']['title'] == 'optional' && $instance['required'] && !$optional_field_found) {
+  if ($instance['settings']['url'] === 'optional' && $instance['settings']['title'] === 'optional' && $instance['required'] && !$optional_field_found) {
     form_set_error($field['field_name'] .'][0][title', t('At least one title or URL must be entered.'));
   }
 }
@@ -330,9 +330,9 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
  */
 function _link_validate(&$item, $delta, $field, $node, $instance, &$optional_field_found) {
   if ($item['url']
-                    && !(isset($instance['default_value'][$delta]['url'])
-                        && $item['url'] === $instance['default_value'][$delta]['url']
-                        && !$instance['required'])) {
+      && !(isset($instance['default_value'][$delta]['url'])
+      && $item['url'] === $instance['default_value'][$delta]['url']
+      && !$instance['required'])) {
     // Validate the link.
     if (link_validate_url(trim($item['url'])) == FALSE) {
       form_set_error($field['field_name'] .']['. $delta .'][url', t('Not a valid URL.'));
@@ -622,7 +622,7 @@ function link_field_process($element, $form_state, $complete_form) {
   if ($settings['title'] !== 'none' && $settings['title'] !== 'value') {
     $element['title'] = array(
       '#type' => 'textfield',
-      '#maxlength' => '255',
+      '#maxlength' => '255', // @TODO: convert to optional user setting
       '#title' => t('Title'),
   /*  '#required' => ($settings['title'] == 'required' && !empty($element['#value']['url'])) ? TRUE : FALSE, */
       '#required' => ($settings['title'] == 'required' && (($element['#delta'] == 0 && $element['#required']) || !empty($element['#value']['url']))) ? TRUE : FALSE, // davereids patch from jan 2011
