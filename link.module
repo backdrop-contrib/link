@@ -35,6 +35,7 @@ function link_field_info() {
         'url' => 0,
         'title' => 'optional',
         'title_value' => '',
+        'title_maxlength' => 128, //patch #1307788 from nmc
         'enable_tokens' => 1,
         'display' => array(
           'url_cutoff' => 80,
@@ -45,6 +46,7 @@ function link_field_info() {
         'url' => 0,
         'title' => 'optional',
         'title_value' => '',
+        'title_maxlength' => 128, // patch #1307788 from nmc
         'enable_tokens' => 1,
         'display' => array(
           'url_cutoff' => 80,
@@ -104,6 +106,15 @@ function link_field_instance_settings_form($field, $instance) {
     '#default_value' => isset($instance['settings']['title_value']) ? $instance['settings']['title_value'] : '',
     '#description' => t('This title will always be used if &ldquo;Static Title&rdquo; is selected above.'),
   );
+
+  $form['title_maxlength'] = array( // patch #1307788 from nmc
+    '#type' => 'textfield',
+    '#title' => t('Max length of title field'),
+    '#default_value' => isset($instance['settings']['title_maxlength']) ? $instance['settings']['title_maxlength'] : '128',
+    '#description' => t('Set a maximum length on the title field (applies only if Link Title is optional or required).  The maximum limit is 255 characters.'),
+    '#maxlength' => 3,
+    '#size' => 3,
+    );
 
   if (module_exists('token')) {
     // Add token module replacements fields
@@ -201,6 +212,18 @@ function link_field_settings_form_validate($element, &$form_state, $complete_for
       && empty($form_state['values']['instance']['settings']['title_value'])) {
     form_set_error('title_value', t('A default title must be provided if the title is a static value.'));
   }
+  if (!empty($form_state['values']['instance']['settings']['display']['url_cutoff'])  // patch #1307788 from nmc
+      && !is_numeric($form_state['values']['instance']['settings']['display']['url_cutoff'])) {
+    form_set_error('display', t('URL Display Cutoff value must be numeric.'));
+  }
+  if (empty($form_state['values']['instance']['settings']['title_maxlength'])) {     // patch #1307788 from nmc
+    form_set_value($element['title_maxlength'], '128', $form_state);
+  } elseif (!is_numeric($form_state['values']['instance']['settings']['title_maxlength'])) {
+    form_set_error('title_maxlength', t('The max length of the link title must be numeric.'));
+  } elseif ($form_state['values']['instance']['settings']['title_maxlength'] > 255) {
+    form_set_error('title_maxlength', t('The max length of the link title cannot be greater than 255 characters.'));
+  }
+
 }
 
 /**
@@ -622,9 +645,9 @@ function link_field_process($element, $form_state, $complete_form) {
   if ($settings['title'] !== 'none' && $settings['title'] !== 'value') {
     $element['title'] = array(
       '#type' => 'textfield',
-      '#maxlength' => '255', // @TODO: convert to optional user setting
+      '#maxlength' => $settings['title_maxlength'],  // patch #1307788 from nmc
       '#title' => t('Title'),
-  /*  '#required' => ($settings['title'] == 'required' && !empty($element['#value']['url'])) ? TRUE : FALSE, */
+      '#description' => t('The link title is limited to '.$settings['title_maxlength'].' characters maximum.'), // patch #1307788 from nmc
       '#required' => ($settings['title'] == 'required' && (($element['#delta'] == 0 && $element['#required']) || !empty($element['#value']['url']))) ? TRUE : FALSE, // davereids patch from jan 2011
       '#default_value' => isset($element['#value']['title']) ? $element['#value']['title'] : NULL,
     );
@@ -798,7 +821,11 @@ function theme_link_formatter_link_separate($vars) {
   unset($link_options['element']['title']);
   unset($link_options['element']['url']);
   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
-
+  
+  /** 
+   * @TODO static html markup looks not very elegant to me (who takes it off?)
+   * needs smarter output solution and an optional title/url seperator (digidog) 
+   */
   $output = '';
   $output .= '<div class="link-item '. $class .'">';
   if (!empty($title)) {
