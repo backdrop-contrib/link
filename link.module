@@ -878,6 +878,13 @@ function link_views_api() {
 }
 
 /**
+ * Implements hook_migrate_api().
+ */
+function link_migrate_api() {
+  return array('api' => 2);
+}
+
+/**
  * Forms a valid URL if possible from an entered address.
  * Trims whitespace and automatically adds an http:// to addresses without a protocol specified
  *
