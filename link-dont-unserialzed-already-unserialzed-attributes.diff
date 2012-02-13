@@ -1,0 +1,76 @@
+diff --git a/link.module b/link.module
+index 16a5fad..09f7e09 100644
+--- a/link.module
++++ b/link.module
+@@ -69,7 +69,7 @@ function link_field_instance_settings_form($field, $instance) {
+   $form = array(
+     '#element_validate' => array('link_field_settings_form_validate'),
+   );
+-  
++
+   $form['validate_url'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Validate URL'),
+@@ -312,7 +312,10 @@ function _link_load($field, $item, $instance) {
+                                 unserialize($item['attributes']) :
+                                 $instance['settings']['attributes'];*/
+   if (isset($item['attributes'])) {
+-    return unserialize($item['attributes']);
++    if (!is_array($item['attributes'])) {
++      $item['attributes'] = unserialize($item['attributes']);
++    }
++    return $item['attributes'];
+   }
+   else if (isset($instance['settings']['attributes'])) {
+     return $instance['settings']['attributes'];
+@@ -748,12 +751,12 @@ function theme_link_formatter_link_default($vars) {
+   $link_options = $vars['element'];
+   unset($link_options['element']['title']);
+   unset($link_options['element']['url']);
+-  
++
+   // Issue #1199806 by ss81: Fixes fatal error when the link URl is equal to page URL
+   if (isset($link_options['attributes']['class'])) {
+     $link_options['attributes']['class'] = array($link_options['attributes']['class']);
+   }
+-  
++
+   // Display a normal link if both title and URL are available.
+   if (!empty($vars['element']['title']) && !empty($vars['element']['url'])) {
+     return l($vars['element']['title'], $vars['element']['url'], $link_options);
+@@ -827,10 +830,10 @@ function theme_link_formatter_link_separate($vars) {
+   unset($link_options['element']['title']);
+   unset($link_options['element']['url']);
+   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
+-  
+-  /** 
++
++  /**
+    * @TODO static html markup looks not very elegant to me (who takes it off?)
+-   * needs smarter output solution and an optional title/url seperator (digidog) 
++   * needs smarter output solution and an optional title/url seperator (digidog)
+    */
+   $output = '';
+   $output .= '<div class="link-item '. $class .'">';
+@@ -966,7 +969,7 @@ function link_validate_url($text) {
+     "&#x00DB;", // Û
+     "&#x00FB;", // û
+     "&#x0178;", // Ÿ
+-    "&#x00FF;", // ÿ 
++    "&#x00FF;", // ÿ
+     "&#x00D1;", // Ñ
+     "&#x00F1;", // ñ
+     "&#x00FE;", // þ
+diff --git a/views/link_views_handler_argument_target.inc b/views/link_views_handler_argument_target.inc
+index b0a2a3e..fcd398b 100644
+--- a/views/link_views_handler_argument_target.inc
++++ b/views/link_views_handler_argument_target.inc
+@@ -140,7 +140,7 @@ class link_views_handler_argument_target extends views_handler_argument {
+    *
+    * The argument sent may be found at $this->argument.
+    */
+-  function query() {
++  function query($group_by = FALSE) {
+     $this->ensure_my_table();
+     // Because attributes are stored serialized, our only option is to also
+     // serialize the data we're searching for and use LIKE to find similar data.
