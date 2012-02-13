@@ -554,6 +554,9 @@ function link_theme() {
     'link_formatter_link_plain' => array(
       'variables' => array('element' => NULL),
     ),
+    'link_formatter_link_absolute' => array(
+      'variables' => array('element' => NULL),
+    ),
     'link_formatter_link_title_plain' => array(
       'variables' => array('element' => NULL),
     ),
@@ -713,6 +716,11 @@ function link_field_formatter_info() {
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
+    'link_absolute' => array(
+      'label' => t('URL, absolute'),
+      'field types' => array('link_field'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
     'link_short' => array(
       'label' => t('Short, as link with title "Link"'),
       'field types' => array('link_field'),
@@ -780,6 +788,14 @@ function theme_link_formatter_link_plain($vars) {
   return empty($vars['element']['url']) ?
     check_plain($vars['element']['title']) :
     url($vars['element']['url'], $link_options);
+}
+
+/**
+ * Theme function for 'absolute' text field formatter.
+ */
+function theme_link_formatter_link_absolute($vars) {
+  $absolute = array('absolute' => TRUE);
+  return empty($vars['element']['url']) ? '' : url($vars['element']['url'], $absolute + $vars['element']);
 }
 
 /**
