@@ -661,7 +661,7 @@ function link_field_process($element, $form_state, $complete_form) {
       '#type' => 'textfield',
       '#maxlength' => $settings['title_maxlength'],  // patch #1307788 from nmc
       '#title' => t('Title'),
-      '#description' => t('The link title is limited to '.$settings['title_maxlength'].' characters maximum.'), // patch #1307788 from nmc
+      '#description' => t('The link title is limited to @maxlength characters maximum.', array('@maxlength' => $settings['title_maxlength'])),
       '#required' => ($settings['title'] == 'required' && (($element['#delta'] == 0 && $element['#required']) || !empty($element['#value']['url']))) ? TRUE : FALSE, // davereids patch from jan 2011
       '#default_value' => isset($element['#value']['title']) ? $element['#value']['title'] : NULL,
     );
