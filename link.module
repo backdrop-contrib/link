@@ -349,6 +349,14 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
       unset($item['url']);
     }
   }
+  
+  // token from the patch http://drupal.org/files/link_query_fragment.patch @ Issue #1321482
+  if (!empty($item['query'])) {
+    $item['url'] .= '?' . http_build_query($item['query']);
+  }
+  if (!empty($item['fragment'])) {
+    $item['url'] .= '#' . $item['fragment'];
+  }
 }
 
 /**
