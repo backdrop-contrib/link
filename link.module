@@ -263,12 +263,12 @@ function link_field_validate($entity_type, $entity, $field, $instance, $langcode
   $optional_field_found = FALSE;
   if ($instance['settings']['validate_url'] !== 0 || is_null($instance['settings']['validate_url']) || !isset($instance['settings']['validate_url'])) {
     foreach ($items as $delta => $value) {
-      _link_validate($items[$delta], $delta, $field, $entity, $instance, $optional_field_found);
+      _link_validate($items[$delta], $delta, $field, $entity, $instance, $langcode, $optional_field_found);
     }
   }
 
   if ($instance['settings']['url'] === 'optional' && $instance['settings']['title'] === 'optional' && $instance['required'] && !$optional_field_found) {
-    form_set_error($field['field_name'] .'][0][title', t('At least one title or URL must be entered.'));
+    form_set_error($field['field_name'] . '][' . $langcode . '][0][title', t('At least one title or URL must be entered.'));
   }
 }
 
@@ -374,25 +374,25 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
 /**
  * Validates that the link field has been entered properly.
  */
-function _link_validate(&$item, $delta, $field, $node, $instance, &$optional_field_found) {
+function _link_validate(&$item, $delta, $field, $node, $instance, $langcode, &$optional_field_found) {
   if ($item['url']
       && !(isset($instance['default_value'][$delta]['url'])
       && $item['url'] === $instance['default_value'][$delta]['url']
       && !$instance['required'])) {
     // Validate the link.
     if (link_validate_url(trim($item['url'])) == FALSE) {
-      form_set_error($field['field_name'] .']['. $delta .'][url', t('Not a valid URL.'));
+      form_set_error($field['field_name'] . '][' . $langcode . ']['. $delta .'][url', t('Not a valid URL.'));
     }
     // Require a title for the link if necessary.
     if ($instance['settings']['title'] == 'required' && strlen(trim($item['title'])) == 0) {
-      form_set_error($field['field_name'] .']['. $delta .'][title', t('Titles are required for all links.'));
+      form_set_error($field['field_name'] . '][' . $langcode . ']['. $delta .'][title', t('Titles are required for all links.'));
     }
   }
   // Require a link if we have a title.
   if ($instance['settings']['url'] !== 'optional'
       && strlen(isset($item['title']) ? $item['title'] : NULL) > 0
       && strlen(trim($item['url'])) == 0) {
-    form_set_error($field['field_name'] .']['. $delta .'][url', t('You cannot enter a title without a link url.'));
+    form_set_error($field['field_name'] . '][' . $langcode . ']['. $delta .'][url', t('You cannot enter a title without a link url.'));
   }
   // In a totally bizzaro case, where URLs and titles are optional but the field is required, ensure there is at least one link.
   if ($instance['settings']['url'] === 'optional'
@@ -406,7 +406,7 @@ function _link_validate(&$item, $delta, $field, $node, $instance, &$optional_fie
     && $instance['required'] == 1
     && !$optional_field_found
     && isset($instance['id'])) {
-    form_set_error($instance['field_name'] .'][0][title',
+    form_set_error($instance['field_name'] . '][' . $langcode . '][0][title',
                    t('At least one title or URL must be entered.'));
   }
 }
