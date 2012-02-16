@@ -181,6 +181,18 @@ function link_field_instance_settings_form($field, $instance) {
     '#field_suffix' => '"',
     '#size' => 20,
   );
+  $rel_remove_options = array(
+    'default' => t('Keep rel as set up above (untouched/default)'),
+    'rel_remove_external' => t('Remove rel if given link is external'),
+    'rel_remove_internal' => t('Remove rel if given link is internal'),
+  );
+  $form['rel_remove'] = array(
+    '#type' => 'radios',
+    '#title' => t('Remove rel attribute automaticly'),
+    '#default_value' => !isset($instance['settings']['rel_remove']) ? 'default' : $instance['settings']['rel_remove'],
+    '#description' => t('Turn on/off if rel attribute should be removed automaticly, if user given link is internal/external'),
+    '#options' => $rel_remove_options,
+  );
   $form['attributes']['class'] = array(
     '#type' => 'textfield',
     '#title' => t('Additional CSS Class'),
@@ -516,9 +528,12 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
     unset($item['attributes']['target']);
   }
 
-  // Remove the rel=nofollow for internal links.
-  if ($type != LINK_EXTERNAL && strpos($item['attributes']['rel'], 'nofollow') !== FALSE) {
-    $item['attributes']['rel'] = str_replace('nofollow', '', $item['attributes']);
+  // Remove rel attribute for internal or external links if selected.
+  if (isset($item['attributes']['rel']) && isset($instance['settings']['rel_remove']) && $instance['settings']['rel_remove'] != 'default') {
+    if (($instance['settings']['rel_remove'] != 'rel_remove_internal' && $type != LINK_INTERNAL) ||
+            ($instance['settings']['rel_remove'] != 'rel_remove_external' && $type != LINK_EXTERNAL)) {
+    unset($item['attributes']['rel']);
+    }
   }
 
   // Handle "title" link attribute.
@@ -856,8 +871,8 @@ function theme_link_formatter_link_separate($vars) {
   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
 
   /**
-   * @TODO static html markup looks not very elegant to me (who takes it off?)
-   * needs smarter output solution and an optional title/url seperator (digidog)
+   * @TODO static html markup looks not very elegant
+   * needs smarter output solution and an optional title/url seperator
    */
   $output = '';
   $output .= '<div class="link-item '. $class .'">';
@@ -982,8 +997,8 @@ function link_validate_url($text) {
     "&#x00D6;", // Ö
     "&#x00D4;", // Ô
     "&#x00F4;", // ô
-    "&#x00D5;",	// Õ
-    "&#x00F5;",	// õ
+    "&#x00D5;", // Õ
+    "&#x00F5;", // õ
     "&#x0152;", // Œ
     "&#x0153;", // œ
     "&#x00FC;", // ü
