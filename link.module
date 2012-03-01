@@ -1080,8 +1080,12 @@ function link_validate_url($text) {
  */
 function link_content_migrate_field_alter(&$field_value, $instance_value) {
   if ($field_value['type'] == 'link') {
-    // need to change the type:
+    // Adjust the field type:
     $field_value['type'] = 'link_field';
+    // Remove settings that are now on the instance.
+    foreach (array('attributes', 'display', 'url', 'title', 'title_value', 'enable_tokens', 'validate_url') as $setting) {
+      unset($field_value['settings'][$setting]);
+    }
   }
 }
 
@@ -1091,9 +1095,23 @@ function link_content_migrate_field_alter(&$field_value, $instance_value) {
  * Widget type also changed to link_field.
  */
 function link_content_migrate_instance_alter(&$instance_value, $field_value) {
-  if ($instance_value['widget']['module'] == 'link'
-      && $instance_value['widget']['type'] == 'link') {
-    $instance_value['widget']['type'] = 'link_field';
+  if ($field_value['type'] == 'link') {
+    // Grab settings that were previously on the field.
+    foreach (array('attributes', 'display', 'url', 'title', 'title_value', 'enable_tokens', 'validate_url') as $setting) {
+      if (isset($field_value['settings'][$setting])) {
+        $instance_value['settings'][$setting] = $field_value['settings'][$setting];
+      }
+    }
+    // Adjust widget type
+    if ($instance_value['widget']['type'] == 'link') {
+      $instance_value['widget']['type'] = 'link_field';
+    }
+    // Adjust formatter types.
+    foreach ($instance_value['display'] as $context => $settings) {
+      if (in_array($settings['type'], array('default', 'title_plain', 'url', 'plain', 'short', 'label', 'separate'))) {
+        $instance_value['display'][$context]['type'] = 'link_' . $settings['type'];
+      }
+    }
   }
 }
 
