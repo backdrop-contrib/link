@@ -522,6 +522,9 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   if ($instance['settings']['attributes']['target'] != LINK_TARGET_USER) {
     $item['attributes']['target'] = $instance['settings']['attributes']['target'];
   }
+  elseif ($item['attributes']['target'] == LINK_TARGET_USER) {
+    $item['attributes']['target'] = LINK_TARGET_DEFAULT;
+  }
 
   // Remove the target attribute if the default (no target) is selected.
   if (empty($item['attributes']) || $item['attributes']['target'] == LINK_TARGET_DEFAULT) {
