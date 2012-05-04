@@ -783,8 +783,8 @@ function link_field_formatter_view($entity_type, $entity, $field, $instance, $la
  */
 function theme_link_formatter_link_default($vars) {
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  unset($link_options['title']);
+  unset($link_options['url']);
 
   // Issue #1199806 by ss81: Fixes fatal error when the link URl is equal to page URL
   if (isset($link_options['attributes']['class'])) {
@@ -809,8 +809,13 @@ function theme_link_formatter_link_default($vars) {
  */
 function theme_link_formatter_link_plain($vars) {
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  if (isset($link_options['title'])) {
+    unset($link_options['title']);
+  }
+  else {
+    $vars['element']['title'] = '';
+  }
+  unset($link_options['url']);
   return empty($vars['element']['url']) ?
     check_plain($vars['element']['title']) :
     url($vars['element']['url'], $link_options);
@@ -836,8 +841,8 @@ function theme_link_formatter_link_title_plain($vars) {
  */
 function theme_link_formatter_link_url($vars) {
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  unset($link_options['title']);
+  unset($link_options['url']);
   return $vars['element']['url'] ? l($vars['element']['display_url'], $vars['element']['url'], $link_options) : '';
 }
 
@@ -846,8 +851,8 @@ function theme_link_formatter_link_url($vars) {
  */
 function theme_link_formatter_link_short($vars) {
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  unset($link_options['title']);
+  unset($link_options['url']);
   return $vars['element']['url'] ? l(t('Link'), $vars['element']['url'], $link_options) : '';
 }
 
@@ -856,8 +861,8 @@ function theme_link_formatter_link_short($vars) {
  */
 function theme_link_formatter_link_label($vars) {
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  unset($link_options['title']);
+  unset($link_options['url']);
   return $vars['element']['url'] ? l($vars['field']['label'], $vars['element']['url'], $link_options) : '';
 }
 
@@ -869,8 +874,8 @@ function theme_link_formatter_link_separate($vars) {
   $class = empty($vars['element']['attributes']['class']) ? '' : ' '. $vars['element']['attributes']['class'];
   unset($vars['element']['attributes']['class']);
   $link_options = $vars['element'];
-  unset($link_options['element']['title']);
-  unset($link_options['element']['url']);
+  unset($link_options['title']);
+  unset($link_options['url']);
   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
 
   /**
