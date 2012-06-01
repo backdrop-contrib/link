@@ -710,9 +710,13 @@ function link_field_process($element, $form_state, $complete_form) {
     );
   }
 
-  // To prevent an extra required indicator, disable the required flag on the
-  // base element since all the sub-fields are already required if desired.
-  $element['#required'] = FALSE; // davereids patch from jan 2011
+  // If the title field is avaliable or there are field accepts multiple values
+  // then allow the individual field items display the required asterisk if needed.
+  if (isset($element['title']) || isset($element['_weight'])) {
+    // To prevent an extra required indicator, disable the required flag on the
+    // base element since all the sub-fields are already required if desired.
+    $element['#required'] = FALSE;
+  }
 
   return $element;
 }
