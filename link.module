@@ -361,7 +361,7 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
       unset($item['url']);
     }
   }
-  
+
   // token from the patch http://drupal.org/files/link_query_fragment.patch @ Issue #1321482
   if (!empty($item['query'])) {
     $item['url'] .= '?' . http_build_query($item['query']);
@@ -970,8 +970,8 @@ function link_cleanup_url($url, $protocol = "http") {
  * mailto address formation.
  *
  * @param string $text
- * @return mixed Returns boolean FALSE if the URL is not valid. On success, returns an object with
- * the following attributes: protocol, hostname, ip, and port.
+ * @return mixed Returns boolean FALSE if the URL is not valid. On success,
+ * returns one of the LINK_(linktype) constants.
  */
 function link_validate_url($text) {
   $LINK_ICHARS_DOMAIN = (string) html_entity_decode(implode("", array( // @TODO completing letters ...
@@ -1047,8 +1047,8 @@ function link_validate_url($text) {
   $external_pattern = '/^'. $protocol .'?'. $authentication .'?('. $domain .'|'. $ipv4 .'|'. $ipv6 .' |localhost)'. $port .'?';
 
   // Pattern specific to internal links.
-  $internal_pattern = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\]]+)";
-  $internal_pattern_file = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\]\.]+)$/i";
+  $internal_pattern = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\] ]+)";
+  $internal_pattern_file = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\]\. \/\(\)]+)$/i";
 
   $directories = "(?:\/[a-z0-9". $LINK_ICHARS ."_\-\.~+%=&,$'#!():;*@\[\]]*)*";
   // Yes, four backslashes == a single backslash.
