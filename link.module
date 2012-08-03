@@ -273,9 +273,18 @@ function link_field_validate($entity_type, $entity, $field, $instance, $langcode
 }
 
 /**
- * Implements hook_field_presave().
+ * Implements hook_field_insert().
  */
-function link_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+function link_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  foreach ($items as $delta => $value) {
+    _link_process($items[$delta], $delta, $field, $entity);
+  }
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function link_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach ($items as $delta => $value) {
     _link_process($items[$delta], $delta, $field, $entity);
   }
