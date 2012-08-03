@@ -97,7 +97,7 @@ function link_field_instance_settings_form($field, $instance) {
     '#title' => t('Link Title'),
     '#default_value' => isset($instance['settings']['title']) ? $instance['settings']['title'] : 'optional',
     '#options' => $title_options,
-    '#description' => t('If the link title is optional or required, a field will be displayed to the end user. If the link title is static, the link will always use the same title. If <a href="http://drupal.org/project/token">token module</a> is installed, the static title value may use any other node field as its value. Static and token-based titles may include most inline XHTML tags such as <em>strong</em>, <em>em</em>, <em>img</em>, <em>span</em>, etc.'),
+    '#description' => t('If the link title is optional or required, a field will be displayed to the end user. If the link title is static, the link will always use the same title. If <a href="http://drupal.org/project/token">token module</a> is installed, the static title value may use any other entity field as its value. Static and token-based titles may include most inline XHTML tags such as <em>strong</em>, <em>em</em>, <em>img</em>, <em>span</em>, etc.'),
   );
 
   $form['title_value'] = array(
@@ -141,7 +141,7 @@ function link_field_instance_settings_form($field, $instance) {
       '#type' => 'checkbox',
       '#title' => t('Allow user-entered tokens'),
       '#default_value' => isset($instance['settings']['enable_tokens']) ? $instance['settings']['enable_tokens'] : 1,
-      '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the node edit form. This does not affect the field settings on this page.'),
+      '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the entity edit form. This does not affect the field settings on this page.'),
     );
   }
 
@@ -365,7 +365,7 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
 
   // Don't save an invalid default value (e.g. 'http://').
   if ((isset($field['widget']['default_value'][$delta]['url']) && $item['url'] == $field['widget']['default_value'][$delta]['url'])
-      && is_object($node)) {
+      && is_object($entity)) {
     if (!link_validate_url($item['url'])) {
       unset($item['url']);
     }
@@ -375,7 +375,7 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
 /**
  * Validates that the link field has been entered properly.
  */
-function _link_validate(&$item, $delta, $field, $node, $instance, $langcode, &$optional_field_found) {
+function _link_validate(&$item, $delta, $field, $entity, $instance, $langcode, &$optional_field_found) {
   if ($item['url']
       && !(isset($instance['default_value'][$delta]['url'])
       && $item['url'] === $instance['default_value'][$delta]['url']
@@ -421,21 +421,23 @@ function _link_validate(&$item, $delta, $field, $node, $instance, $langcode, &$o
  *   The delta value if this field is one of multiple fields.
  * @param $field
  *   The CCK field definition.
- * @param $node
- *   The node containing this link.
+ * @param $entity
+ *   The entity containing this link.
  */
-function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
+function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   // Don't try to process empty links.
   if (empty($item['url']) && empty($item['title'])) {
     return;
   }
 
   // Replace URL tokens.
+  $entity_info = entity_get_info($instance['entity_type']);
+  $property_id = $entity_info['entity keys']['id'];
   if (isset($instance['settings']['enable_tokens']) && $instance['settings']['enable_tokens']) {
     global $user;
-    // Load the node if necessary for nodes in views.
-    $token_node = isset($node->nid) ? node_load($node->nid) : $node;
-    $item['url'] = token_replace($item['url'], array('node' => $token_node));
+    // Load the entity if necessary for entities in views.
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
+    $item['url'] = token_replace($item['url'], array($entity_info['token type'] => $entity_loaded));
   }
 
   $type = link_validate_url($item['url']);
@@ -498,9 +500,9 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   // Replace tokens.
   if ($title && ($instance['settings']['title'] == 'value' || $instance['settings']['enable_tokens'])) {
-    // Load the node if necessary for nodes in views.
-    $token_node = isset($node->nid) ? node_load($node->nid) : $node;
-    $title = filter_xss(token_replace($title, array('node' => $token_node)),
+    // Load the entity if necessary for entities in views.
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
+    $title = filter_xss(token_replace($title, array($entity_info['token type'] => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
     $item['html'] = TRUE;
   }
@@ -550,9 +552,9 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
 
   // Handle "title" link attribute.
   if (!empty($item['attributes']['title']) && module_exists('token')) {
-    // Load the node (necessary for nodes in views).
-    $token_node = isset($node->nid) ? node_load($node->nid) : $node;
-    $item['attributes']['title'] = filter_xss(token_replace($item['attributes']['title'], array('node' => $token_node)),
+    // Load the entity (necessary for entities in views).
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
+    $item['attributes']['title'] = filter_xss(token_replace($title, array($entity_info['token type'] => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
   // Remove title attribute if it's equal to link text.
