@@ -466,7 +466,8 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
     $url = substr($url, 0, strpos($url, '?'));
   }
 
-  $item['url'] = url(check_plain($url), $url_parts);
+  $item['url'] = check_plain($url) . (!empty($url_parts['query']) ? '?' . drupal_http_build_query($url_parts['query']) : '')
+    . (!empty($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
 
   // Create a shortened URL for display.
   $display_url = $type == LINK_EMAIL ?
