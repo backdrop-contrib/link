@@ -588,6 +588,9 @@ function link_theme() {
     'link_formatter_link_absolute' => array(
       'variables' => array('element' => NULL),
     ),
+    'link_formatter_link_domain' => array(
+      'variables' => array('element' => NULL),
+    ),
     'link_formatter_link_title_plain' => array(
       'variables' => array('element' => NULL),
     ),
@@ -756,6 +759,14 @@ function link_field_formatter_info() {
       'field types' => array('link_field'),
       'multiple values' => FIELD_BEHAVIOR_DEFAULT,
     ),
+    'link_domain' => array(
+      'label' => t('Domain, as link'),
+      'field types' => array('link_field'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+      'settings' => array(
+        'strip_www' => FALSE,
+      ),
+    ),
     'link_short' => array(
       'label' => t('Short, as link with title "Link"'),
       'field types' => array('link_field'),
@@ -775,13 +786,47 @@ function link_field_formatter_info() {
 }
 
 /**
+ * Implements hook_field_formatter_settings_form().
+ */
+function link_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  if ($display['type'] == 'link_domain') {
+    $element['strip_www'] = array(
+      '#title' => t('Strip www. from domain'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['strip_www'],
+    );
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function link_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  if ($display['type'] == 'link_domain') {
+    if ($display['settings']['strip_www']) {
+      return t('Strip www. from domain');
+    }
+    else {
+      return t('Leave www. in domain');
+    }
+  }
+  return '';
+}
+
+/**
  * Implements hook_field_formatter_view().
  */
 function link_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $elements = array();
   foreach ($items as $delta => $item) {
     $elements[$delta] = array(
-      '#markup' => theme('link_formatter_'. $display['type'], array('element' => $item, 'field' => $instance)),
+      '#markup' => theme('link_formatter_'. $display['type'], array('element' => $item, 'field' => $instance, 'display' => $display)),
     );
   }
   return $elements;
@@ -836,6 +881,20 @@ function theme_link_formatter_link_plain($vars) {
 function theme_link_formatter_link_absolute($vars) {
   $absolute = array('absolute' => TRUE);
   return empty($vars['element']['url']) ? '' : url($vars['element']['url'], $absolute + $vars['element']);
+}
+
+/**
+ * Theme function for 'domain' text field formatter.
+ */
+function theme_link_formatter_link_domain($vars) {
+  $link_options = $vars['element'];
+  unset($link_options['title']);
+  unset($link_options['url']);
+  $domain = parse_url($vars['element']['display_url'], PHP_URL_HOST);
+  if (!empty($vars['display']['settings']['strip_www'])) {
+    $domain = str_replace('www.', '', $domain);
+  }
+  return $vars['element']['url'] ? l($domain, $vars['element']['url'], $link_options) : '';
 }
 
 /**
