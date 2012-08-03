@@ -456,6 +456,12 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
   if (strpos($url, '?') !== FALSE) {
     $query = substr($url, strpos($url, '?') + 1);
     parse_str($query, $query_array);
+    // See http://drupal.org/node/1710578
+    foreach ($query_array as $key=> &$value) {
+      if ($value === '' && FALSE === strpos($query, $key . '=')) {
+        $value = NULL;
+      }
+    }
     $url_parts['query'] = $query_array;
     $url = substr($url, 0, strpos($url, '?'));
   }
