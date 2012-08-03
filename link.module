@@ -370,14 +370,6 @@ function _link_process(&$item, $delta = 0, $field, $entity) {
       unset($item['url']);
     }
   }
-
-  // token from the patch http://drupal.org/files/link_query_fragment.patch @ Issue #1321482
-  if (!empty($item['query'])) {
-    $item['url'] .= '?' . http_build_query($item['query']);
-  }
-  if (!empty($item['fragment'])) {
-    $item['url'] .= '#' . $item['fragment'];
-  }
 }
 
 /**
@@ -453,30 +445,31 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
     $type = LINK_EXTERNAL;
   }
   $url = link_cleanup_url($item['url']);
+  $url_parts = array();
 
   // Separate out the anchor if any.
   if (strpos($url, '#') !== FALSE) {
-    $item['fragment'] = substr($url, strpos($url, '#') + 1);
+    $url_parts['fragment'] = substr($url, strpos($url, '#') + 1);
     $url = substr($url, 0, strpos($url, '#'));
   }
   // Separate out the query string if any.
   if (strpos($url, '?') !== FALSE) {
     $query = substr($url, strpos($url, '?') + 1);
     parse_str($query, $query_array);
-    $item['query'] = $query_array;
+    $url_parts['query'] = $query_array;
     $url = substr($url, 0, strpos($url, '?'));
   }
 
-  $item['url'] = check_plain($url);
+  $item['url'] = url(check_plain($url), $url_parts);
 
   // Create a shortened URL for display.
   $display_url = $type == LINK_EMAIL ?
                   str_replace('mailto:', '', $url) :
-                  url($url, array('query' => isset($item['query']) ?
-                                              $item['query'] :
+                  url($url, array('query' => isset($url_parts['query']) ?
+                                              $url_parts['query'] :
                                               NULL,
-                                  'fragment' => isset($item['fragment']) ?
-                                                $item['fragment'] :
+                                  'fragment' => isset($url_parts['fragment']) ?
+                                                $url_parts['fragment'] :
                                                 NULL,
                                   'absolute' => TRUE));
   if ($instance['settings']['display']['url_cutoff'] && strlen($display_url) > $instance['settings']['display']['url_cutoff']) {
@@ -580,9 +573,6 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$node) {
  */
 function link_theme() {
   return array(
-    /*'link_field_settings' => array(
-      'variables' => array('element' => NULL),
-    ),*/
     'link_formatter_link_default' => array(
       'variables' => array('element' => NULL),
     ),
