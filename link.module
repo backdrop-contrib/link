@@ -125,9 +125,10 @@ function link_field_instance_settings_form($field, $instance) {
       '#title' => t('Placeholder tokens'),
       '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
     );
+    $entity_info = entity_get_info($entity_type);
     $token_type = array(
       'theme' => 'token_tree',
-      'token_types' => array($instance['entity_type']),
+      'token_types' => array($entity_info['token type']),
       'global_types' => TRUE,
       'click_insert' => TRUE,
       'recursion_limit' => 2,
@@ -431,13 +432,17 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   }
 
   // Replace URL tokens.
-  $entity_info = entity_get_info($instance['entity_type']);
+  $entity_type = $instance['entity_type'];
+  $entity_info = entity_get_info($entity_type);
   $property_id = $entity_info['entity keys']['id'];
+  $entity_token_type = isset($entity_info['token type']) ? $entity_info['token type'] : (
+    $entity_type == 'taxonomy_term' || $entity_type == 'taxonomy_vocabulary' ? str_replace('taxonomy_', '', $entity_type) : $entity_type
+  );
   if (isset($instance['settings']['enable_tokens']) && $instance['settings']['enable_tokens']) {
     global $user;
     // Load the entity if necessary for entities in views.
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
-    $item['url'] = token_replace($item['url'], array($entity_info['token type'] => $entity_loaded));
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
+    $item['url'] = token_replace($item['url'], array($entity_token_type => $entity_loaded));
   }
 
   $type = link_validate_url($item['url']);
@@ -447,26 +452,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
     $type = LINK_EXTERNAL;
   }
   $url = link_cleanup_url($item['url']);
-  $url_parts = array();
-
-  // Separate out the anchor if any.
-  if (strpos($url, '#') !== FALSE) {
-    $url_parts['fragment'] = substr($url, strpos($url, '#') + 1);
-    $url = substr($url, 0, strpos($url, '#'));
-  }
-  // Separate out the query string if any.
-  if (strpos($url, '?') !== FALSE) {
-    $query = substr($url, strpos($url, '?') + 1);
-    parse_str($query, $query_array);
-    // See http://drupal.org/node/1710578
-    foreach ($query_array as $key=> &$value) {
-      if ($value === '' && FALSE === strpos($query, $key . '=')) {
-        $value = NULL;
-      }
-    }
-    $url_parts['query'] = $query_array;
-    $url = substr($url, 0, strpos($url, '?'));
-  }
+  $url_parts = _link_parse_url($url);
 
   $item['url'] = check_plain($url) . (!empty($url_parts['query']) ? '?' . drupal_http_build_query($url_parts['query']) : '')
     . (!empty($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
@@ -501,8 +487,8 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   // Replace tokens.
   if ($title && ($instance['settings']['title'] == 'value' || $instance['settings']['enable_tokens'])) {
     // Load the entity if necessary for entities in views.
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
-    $title = filter_xss(token_replace($title, array($entity_info['token type'] => $entity_loaded)),
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
+    $title = filter_xss(token_replace($title, array($entity_token_type => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
     $item['html'] = TRUE;
   }
@@ -553,8 +539,8 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   // Handle "title" link attribute.
   if (!empty($item['attributes']['title']) && module_exists('token')) {
     // Load the entity (necessary for entities in views).
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($instance['entity_type'], array($entity->{$property_id}))) : $entity;
-    $item['attributes']['title'] = filter_xss(token_replace($title, array($entity_info['token type'] => $entity_loaded)),
+    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
+    $item['attributes']['title'] = filter_xss(token_replace($title, array($entity_token_type => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
   // Remove title attribute if it's equal to link text.
@@ -575,6 +561,39 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
     $item['title'] = $item['url'];
   }*/
 
+}
+
+/**
+ * Because parse_url doesn't work with relative urls.
+ *
+ * @param string $url
+ *   URL to parse.
+ *
+ * @return Array
+ *   Array of url pieces - only 'url', 'query', and 'fragment'.
+ */
+function _link_parse_url($url) {
+  $url_parts = array();
+  // Separate out the anchor if any.
+  if (strpos($url, '#') !== FALSE) {
+    $url_parts['fragment'] = substr($url, strpos($url, '#') + 1);
+    $url = substr($url, 0, strpos($url, '#'));
+  }
+  // Separate out the query string if any.
+  if (strpos($url, '?') !== FALSE) {
+    $query = substr($url, strpos($url, '?') + 1);
+    parse_str($query, $query_array);
+    // See http://drupal.org/node/1710578
+    foreach ($query_array as $key=> &$value) {
+      if ($value === '' && FALSE === strpos($query, $key . '=')) {
+        $value = NULL;
+      }
+    }
+    $url_parts['query'] = $query_array;
+    $url = substr($url, 0, strpos($url, '?'));
+  }
+  $url_parts['url'] = $url;
+  return $url_parts;
 }
 
 /**
@@ -953,12 +972,13 @@ function theme_link_formatter_link_separate($vars) {
    * @TODO static html markup looks not very elegant
    * needs smarter output solution and an optional title/url seperator
    */
+  $url_parts = _link_parse_url($vars['element']['url']);
   $output = '';
   $output .= '<div class="link-item '. $class .'">';
   if (!empty($title)) {
     $output .= '<div class="link-title">'. $title .'</div>';
   }
-  $output .= '<div class="link-url">'. l($vars['element']['url'], $vars['element']['url'], $link_options) .'</div>';
+  $output .= '<div class="link-url">'. l($url_parts['url'], $vars['element']['url'], $link_options) .'</div>';
   $output .= '</div>';
   return $output;
 }
@@ -1115,7 +1135,7 @@ function link_validate_url($text) {
 
   // Pattern specific to internal links.
   $internal_pattern = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\] ]+)";
-  $internal_pattern_file = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\]\. \/\(\)]+)$/i";
+  $internal_pattern_file = "/^(?:[a-z0-9". $LINK_ICHARS ."_\-+\[\]\. \/\(\)][a-z0-9". $LINK_ICHARS ."_\-+\[\]\. \(\)][a-z0-9". $LINK_ICHARS ."_\-+\[\]\. \/\(\)]+)$/i";
 
   $directories = "(?:\/[a-z0-9". $LINK_ICHARS ."_\-\.~+%=&,$'#!():;*@\[\]]*)*";
   // Yes, four backslashes == a single backslash.
