@@ -125,7 +125,7 @@ function link_field_instance_settings_form($field, $instance) {
       '#title' => t('Placeholder tokens'),
       '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
     );
-    $entity_info = entity_get_info($entity_type);
+    $entity_info = entity_get_info($instance['entity_type']);
     $token_type = array(
       'theme' => 'token_tree',
       'token_types' => array($entity_info['token type']),
