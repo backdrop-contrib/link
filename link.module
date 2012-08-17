@@ -653,12 +653,11 @@ function link_theme() {
  */
 function theme_link_field($vars) {
   drupal_add_css(drupal_get_path('module', 'link') .'/link.css');
-
   $element = $vars['element'];
   // Prefix single value link fields with the name of the field.
   if (empty($element['#field']['multiple'])) {
     if (isset($element['url']) && !isset($element['title'])) {
-      unset($element['url']['#title']);
+      $element['url']['#title_display'] = 'invisible';
     }
   }
 
