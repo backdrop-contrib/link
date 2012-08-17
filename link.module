@@ -454,19 +454,33 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   $url = link_cleanup_url($item['url']);
   $url_parts = _link_parse_url($url);
 
-  $item['url'] = check_plain($url) . (!empty($url_parts['query']) ? '?' . drupal_http_build_query($url_parts['query']) : '')
-    . (!empty($url_parts['fragment']) ? '#' . $url_parts['fragment'] : '');
+  // Get rid of '<front>' for proper paths.
+  if ($type == LINK_FRONT) {
+    $url_parts['url'] = '';
+  }
+
+  $item['url'] = url(check_plain($url_parts['url']),
+    array(
+      'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
+      'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
+      'absolute' => TRUE,
+      'html' => TRUE,
+    )
+  );
 
   // Create a shortened URL for display.
-  $display_url = $type == LINK_EMAIL ?
-                  str_replace('mailto:', '', $url) :
-                  url($url, array('query' => isset($url_parts['query']) ?
-                                              $url_parts['query'] :
-                                              NULL,
-                                  'fragment' => isset($url_parts['fragment']) ?
-                                                $url_parts['fragment'] :
-                                                NULL,
-                                  'absolute' => TRUE));
+  if ($type == LINK_EMAIL) {
+    $display_url = str_replace('mailto:', '', $url);
+  }
+  else {
+    $display_url = url(check_plain($url_parts['url']),
+      array(
+        'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
+        'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
+        'absolute' => TRUE,
+      )
+    );
+  }
   if ($instance['settings']['display']['url_cutoff'] && strlen($display_url) > $instance['settings']['display']['url_cutoff']) {
     $display_url = substr($display_url, 0, $instance['settings']['display']['url_cutoff']) ."...";
   }
