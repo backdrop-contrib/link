@@ -441,7 +441,13 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   if (isset($instance['settings']['enable_tokens']) && $instance['settings']['enable_tokens']) {
     global $user;
     // Load the entity if necessary for entities in views.
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
+    if (isset($entity->{$property_id})) {
+      $entity_loaded = entity_load($entity_type, array($entity->{$property_id}));
+      $entity_loaded = array_pop($entity_loaded);
+    }
+    else {
+      $entity_loaded = $entity;
+    }
     $item['url'] = token_replace($item['url'], array($entity_token_type => $entity_loaded));
   }
 
@@ -501,7 +507,13 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   // Replace tokens.
   if ($title && ($instance['settings']['title'] == 'value' || $instance['settings']['enable_tokens'])) {
     // Load the entity if necessary for entities in views.
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
+    if (isset($entity->{$property_id})) {
+      $entity_loaded = entity_load($entity_type, array($entity->{$property_id}));
+      $entity_loaded = array_pop($entity_loaded);
+    }
+    else {
+      $entity_loaded = $entity;
+    }
     $title = filter_xss(token_replace($title, array($entity_token_type => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
     $item['html'] = TRUE;
@@ -553,8 +565,14 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   // Handle "title" link attribute.
   if (!empty($item['attributes']['title']) && module_exists('token')) {
     // Load the entity (necessary for entities in views).
-    $entity_loaded = isset($entity->{$property_id}) ? array_pop(entity_load($entity_type, array($entity->{$property_id}))) : $entity;
-    $item['attributes']['title'] = filter_xss(token_replace($title, array($entity_token_type => $entity_loaded)),
+    if (isset($entity->{$property_id})) {
+      $entity_loaded = entity_load($entity_type, array($entity->{$property_id}));
+      $entity_loaded = array_pop($entity_loaded);
+    }
+    else {
+      $entity_loaded = $entity;
+    }
+    $item['attributes']['title'] = filter_xss(token_replace($item['attributes']['title'], array($entity_token_type => $entity_loaded)),
                         array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
   // Remove title attribute if it's equal to link text.
