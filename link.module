@@ -552,7 +552,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   }
 
   // Remove the target attribute if the default (no target) is selected.
-  if (empty($item['attributes']) || $item['attributes']['target'] == LINK_TARGET_DEFAULT) {
+  if (empty($item['attributes']) || (isset($item['attributes']['target']) && $item['attributes']['target'] == LINK_TARGET_DEFAULT)) {
     unset($item['attributes']['target']);
   }
 
