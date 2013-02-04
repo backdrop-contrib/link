@@ -481,6 +481,10 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       //$valid2 = valid_url($link, TRUE);
       //$this->assertEqual(TRUE, $valid2, "Using valid_url() on $link.");
     }
+    // Test if we can make a tld valid:
+    variable_set('link_extra_domains', array('frog'));
+    $valid = link_validate_url('http://www.example.frog');
+    $this->assertEqual(LINK_EXTERNAL, $valid, "Testing that http://www.example.frog is a valid external link if we've added 'frog' to the list of valid domains.");
   }
 
   function testInvalidExternalLinks() {
@@ -490,6 +494,7 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       'http://4827.0.0.2/',
       '//www.example.com/',
       'http://www.testß.com/', // ß not allowed in domain names!
+      'http://www.example.frog/', // Bad TLD
       //'http://www.-fudge.com/', // domains can't have sections starting with a dash.
     );
     foreach ($links as $link) {
@@ -497,5 +502,4 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       $this->assertEqual(FALSE, $valid, 'Testing that '. $link .' is not a valid link.');
     }
   }
-
 }
