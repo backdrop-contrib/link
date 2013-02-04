@@ -461,25 +461,27 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   $url_parts = _link_parse_url($url);
 
   // Get rid of '<front>' for proper paths.
-  if ($type == LINK_FRONT) {
-    $url_parts['url'] = '';
+  if ($type != LINK_FRONT) {
+    $url_parts['url'] = check_plain($url_parts['url']);
   }
 
-  $item['url'] = url(check_plain($url_parts['url']),
-    array(
-      'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
-      'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
-      'absolute' => TRUE,
-      'html' => TRUE,
-    )
-  );
+  if (!empty($url_parts['url'])) {
+    $item['url'] = url($url_parts['url'],
+      array(
+        'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
+        'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
+        'absolute' => TRUE,
+        'html' => TRUE,
+      )
+    );
+  }
 
   // Create a shortened URL for display.
   if ($type == LINK_EMAIL) {
     $display_url = str_replace('mailto:', '', $url);
   }
   else {
-    $display_url = url(check_plain($url_parts['url']),
+    $display_url = url($url_parts['url'],
       array(
         'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
         'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
