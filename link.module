@@ -383,7 +383,7 @@ function _link_validate(&$item, $delta, $field, $entity, $instance, $langcode, &
       && !$instance['required'])) {
     // Validate the link.
     if (link_validate_url(trim($item['url'])) == FALSE) {
-      form_set_error($field['field_name'] . '][' . $langcode . ']['. $delta .'][url', t('Not a valid URL.'));
+      form_set_error($field['field_name'] . '][' . $langcode . ']['. $delta .'][url', t('The value provided for %field is not a valid URL.', array('%field' => $instance['label'])));
     }
     // Require a title for the link if necessary.
     if ($instance['settings']['title'] == 'required' && strlen(trim($item['title'])) == 0) {

@@ -104,7 +104,7 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText(t('Not a valid URL.'));
+    $this->assertText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
   }
 
   /**
@@ -149,7 +149,7 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertText(t('Not a valid URL.'));
+    $this->assertText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
 
   }
 
@@ -199,8 +199,7 @@ class LinkValidateTest extends LinkValidateTestCase {
     );
 
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertNoText(t('Not a valid URL.'));
-
+    $this->assertNoText(t('The value provided for @field is not a valid URL.', array('@field' => $name)));
   }
 
   /**
@@ -242,7 +241,7 @@ class LinkValidateTest extends LinkValidateTestCase {
 
     $this->drupalPost('node/'. $this->nodes[0]->nid .'/edit', $edit, t('Save'));
     //$this->pass($this->content);
-    $this->assertNoText(t('Not a valid URL.'));
+    $this->assertNoText(t('The value provided for %field is not a valid URL.', array('%field' => $name)));
 
     // Make sure we get a new version!
     $node = node_load($this->nodes[0]->nid, NULL, TRUE);
