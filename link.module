@@ -189,9 +189,9 @@ function link_field_instance_settings_form($field, $instance) {
   );
   $form['rel_remove'] = array(
     '#type' => 'radios',
-    '#title' => t('Remove rel attribute automaticly'),
+    '#title' => t('Remove rel attribute automatically'),
     '#default_value' => !isset($instance['settings']['rel_remove']) ? 'default' : $instance['settings']['rel_remove'],
-    '#description' => t('Turn on/off if rel attribute should be removed automaticly, if user given link is internal/external'),
+    '#description' => t('Turn on/off if rel attribute should be removed automatically, if user given link is internal/external'),
     '#options' => $rel_remove_options,
   );
   $form['attributes']['class'] = array(
