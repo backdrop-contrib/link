@@ -92,7 +92,7 @@ class MigrateLinkFieldHandler extends MigrateFieldHandler {
         if (!is_array($arguments['title'])) {
           $item['title'] = $arguments['title'];
         }
-        else if (isset($arguments['title'][$delta])) {
+        elseif (isset($arguments['title'][$delta])) {
           $item['title'] = $arguments['title'][$delta];
         }
       }
