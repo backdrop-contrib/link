@@ -7,11 +7,7 @@
 
 class LinkValidateTestCase extends LinkBaseTestClass {
 
-  function setUp($modules = array()) {
-    parent::setUp($modules);
-  }
-
-  function createLink($url, $title, $attributes = array()) {
+  protected function createLink($url, $title, $attributes = array()) {
     return array(
       'url' => $url,
       'title' => $title,
@@ -22,7 +18,7 @@ class LinkValidateTestCase extends LinkBaseTestClass {
   /**
    * Takes a url, and sees if it can validate that the url is valid.
    */
-  public function link_test_validate_url($url) {
+  protected function link_test_validate_url($url) {
 
     $field_name = $this->createLinkField();
 
@@ -66,13 +62,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    * Test if we're stopped from posting a bad url on default validation.
    */
   function test_link_validate_bad_url_validate_default() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -111,13 +107,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    * Test if we're stopped from posting a bad url with validation on.
    */
   function test_link_validate_bad_url_validate_on() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -157,13 +153,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    * Test if we can post a bad url if the validation is expressly turned off.
    */
   function test_link_validate_bad_url_validate_off() {
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
                                              'create page content',
                                              'access administration pages'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
 
     // create field
     $name = strtolower($this->randomName());
@@ -207,13 +203,13 @@ class LinkValidateTest extends LinkValidateTestCase {
    */
   function x_test_link_validate_switching_between_validation_status() {
     $this->acquireContentTypes(1);
-    $account = $this->drupalCreateUser(array('administer content types',
+    $this->web_user = $this->drupalCreateUser(array('administer content types',
                                              'administer nodes',
                                              'access administration pages',
                                              'access content',
                                              'create '. $this->content_types[0]->type .' content',
                                              'edit any '. $this->content_types[0]->type .' content'));
-    $this->drupalLogin($account);
+    $this->drupalLogin($this->web_user);
     variable_set('node_options_'. $this->content_types[0]->name, array('status', 'promote'));
     $field_settings = array(
       'type' => 'link',
@@ -359,12 +355,6 @@ class LinkValidateSpecificURL extends LinkValidateTestCase {
  * Validation is guided by the rules in http://tools.ietf.org/html/rfc1738 !
  */
 class LinkValidateUrlLight extends DrupalWebTestCase {
-
-  function setUp() {
-    parent::setUp();
-    // Load the module file instead of enabling it to save time.
-    module_load_include('module', 'link');
-  }
 
   public static function getInfo() {
     return array(
