@@ -93,7 +93,7 @@ class link_views_handler_argument_target extends views_handler_argument {
       '#default_value' => $this->options['validate_type'],
     );
 
-    $validate_types = array('none' => t('<Basic validation>'));
+    $validate_types = array('none' => t('- Basic validation -'));
     $plugins = views_fetch_plugin_data('argument validator');
     foreach ($plugins as $id => $info) {
       $valid = TRUE;
