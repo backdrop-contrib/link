@@ -126,16 +126,11 @@ function link_field_instance_settings_form($field, $instance) {
       '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
     );
     $entity_info = entity_get_info($instance['entity_type']);
-    $token_type = array(
-      'theme' => 'token_tree',
-      'token_types' => array($entity_info['token type']),
-      'global_types' => TRUE,
-      'click_insert' => TRUE,
-      'recursion_limit' => 2,
-    );
     $form['tokens']['help'] = array(
-      '#type' => 'markup',
-      '#markup' => theme('token_tree', $token_type),
+      '#theme' => 'token_tree',
+      '#token_types' => array($entity_info['token type']),
+      '#global_types' => TRUE,
+      '#click_insert' => TRUE,
     );
 
     $form['enable_tokens'] = array(
@@ -867,7 +862,10 @@ function link_field_formatter_view($entity_type, $entity, $field, $instance, $la
   $elements = array();
   foreach ($items as $delta => $item) {
     $elements[$delta] = array(
-      '#markup' => theme('link_formatter_' . $display['type'], array('element' => $item, 'field' => $instance, 'display' => $display)),
+      '#theme' => 'link_formatter_' . $display['type'],
+      '#element' => $item,
+      '#field' => $instance,
+      '#display' => $display,
     );
   }
   return $elements;
