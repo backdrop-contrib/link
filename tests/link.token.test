@@ -28,9 +28,6 @@ class LinkTokenTest extends LinkBaseTestClass {
    * Creates a node with a token in the link title and checks the value.
    */
   function testUserTokenLinkCreate() {
-    /*$this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
-    $this->drupalLogin($this->web_user);*/
-
     // create field
     $settings = array(
       'instance[settings][enable_tokens]' => 1,

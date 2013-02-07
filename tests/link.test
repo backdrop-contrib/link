@@ -20,8 +20,8 @@ class LinkBaseTestClass extends DrupalWebTestCase {
   function setUp() {
     $modules = func_get_args();
     $modules = (isset($modules[0]) && is_array($modules[0]) ? $modules[0] : $modules);
-    $modules = 'field_ui';
-    $modules = 'link';
+    $modules[] = 'field_ui';
+    $modules[] = 'link';
     parent::setUp($modules);
     
     $this->web_user = $this->drupalCreateUser($this->permissions);
