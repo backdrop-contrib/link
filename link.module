@@ -1312,9 +1312,10 @@ function link_field_update_instance($instance, $prior_instance) {
  * Implements hook_i18n_string_list_TEXTGROUP_alter().
  */
 function link_i18n_string_list_field_alter(&$strings, $type = NULL, $object = NULL) {
-  if ($type == 'field_instance' && $object && $object['widget']['type'] == 'link_field') {
-    if (isset($object['settings']['title_value'])) {
-      $strings['field'][$object['field_name']][$object['bundle']]['title_value']['string'] = $object['settings']['title_value'];
-    }
+  if ($type != 'field_instance' || !is_array($object) || !isset($object['widget']['type'])) {
+    return;
+  }
+  if ($object['widget']['type'] == 'link_field' && isset($object['settings']['title_value'])) {
+    $strings['field'][$object['field_name']][$object['bundle']]['title_value']['string'] = $object['settings']['title_value'];
   }
 }
