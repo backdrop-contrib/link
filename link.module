@@ -118,26 +118,20 @@ function link_field_instance_settings_form($field, $instance) {
 
   if (module_exists('token')) {
     // Add token module replacements fields
-    $form['tokens'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#title' => t('Placeholder tokens'),
-      '#description' => t("The following placeholder tokens can be used in both paths and titles. When used in a path or title, they will be replaced with the appropriate values."),
-    );
-    $entity_info = entity_get_info($instance['entity_type']);
-    $form['tokens']['help'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array($entity_info['token type']),
-      '#global_types' => TRUE,
-      '#click_insert' => TRUE,
-    );
-
     $form['enable_tokens'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow user-entered tokens'),
       '#default_value' => isset($instance['settings']['enable_tokens']) ? $instance['settings']['enable_tokens'] : 1,
       '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the entity edit form. This does not affect the field settings on this page.'),
+    );
+    
+    $entity_info = entity_get_info($instance['entity_type']);
+    $form['tokens_help'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array($entity_info['token type']),
+      '#global_types' => TRUE,
+      '#click_insert' => TRUE,
+      '#dialog' => TRUE,
     );
   }
 
