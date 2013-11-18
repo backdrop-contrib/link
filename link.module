@@ -433,11 +433,6 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   $url = link_cleanup_url($item['url']);
   $url_parts = _link_parse_url($url);
 
-  // We can't check_plain('<front>') because it'll break.
-  if ($type != LINK_FRONT) {
-    $url_parts['url'] = check_plain($url_parts['url']);
-  }
-
   if (!empty($url_parts['url'])) {
     $item['url'] = url($url_parts['url'],
       array(
@@ -562,15 +557,6 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
 
   // Remove empty attributes.
   $item['attributes'] = array_filter($item['attributes']);
-
-  // Sets title to trimmed url if one exists
-  // @todo: Obsolete?
-  /*if(!empty($item['display_url']) && empty($item['title'])) {
-    $item['title'] = $item['display_url'];
-  }
-  elseif(!isset($item['title'])) {
-    $item['title'] = $item['url'];
-  }*/
 }
 
 /**
