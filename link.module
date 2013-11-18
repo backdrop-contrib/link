@@ -578,18 +578,42 @@ function _link_parse_url($url) {
   // Separate out the query string, if any.
   if (strpos($url, '?') !== FALSE) {
     $query = substr($url, strpos($url, '?') + 1);
-    parse_str($query, $query_array);
-    // See http://drupal.org/node/1710578
-    foreach ($query_array as $key=> &$value) {
-      if ($value === '' && FALSE === strpos($query, $key . '=')) {
-        $value = NULL;
-      }
-    }
-    $url_parts['query'] = $query_array;
+    $url_parts['query'] = _link_parse_str($query);
     $url = substr($url, 0, strpos($url, '?'));
   }
   $url_parts['url'] = $url;
   return $url_parts;
+}
+
+/**
+ * Bacause parse_str replaces the following characters in query parameters name
+ * in order to maintain compability with deprecated register_globals directive:
+ *
+ *   - chr(32) ( ) (space)
+ *   - chr(46) (.) (dot)
+ *   - chr(91) ([) (open square bracket)
+ *   - chr(128) - chr(159) (various)
+ *
+ * @param string $query
+ *   Query to parse.
+ *
+ * @return Array
+ *   Array of query parameters.
+ *
+ * @see http://php.net/manual/en/language.variables.external.php#81080
+ */
+function _link_parse_str($query) {
+  $query_array = array();
+
+  $pairs = explode('&', $query);
+  foreach ($pairs as $pair) {
+    $name_value = explode('=', $pair);
+    $name = urldecode($name_value[0]);
+    $value = isset($name_value[1]) ? urldecode($name_value[1]) : NULL;
+    $query_array[$name] = $value;
+  }
+
+  return $query_array;
 }
 
 /**
