@@ -325,7 +325,7 @@ function link_field_widget_error($element, $error, $form, &$form_state) {
   if ($error['error_element']['title']) {
     form_error($element['title'], $error['message']);
   }
-  else if ($error['error_element']['url']) {
+  elseif ($error['error_element']['url']) {
     form_error($element['url'], $error['message']);
   }
 }
@@ -704,7 +704,7 @@ function theme_link_field($vars) {
   if (isset($element['title'])) {
     $output .= '<div class="link-field-title link-field-column">' . drupal_render($element['title']) . '</div>';
   }
-  $output .= '<div class="link-field-url' . (isset($element['title']) ? ' link-field-column' : '') . '">'. drupal_render($element['url']) . '</div>';
+  $output .= '<div class="link-field-url' . (isset($element['title']) ? ' link-field-column' : '') . '">' . drupal_render($element['url']) . '</div>';
   $output .= '</div>';
   if (!empty($element['attributes']['target'])) {
     $output .= '<div class="link-attributes">' . drupal_render($element['attributes']['target']) . '</div>';
@@ -1205,7 +1205,7 @@ function link_validate_url($text) {
   $news_pattern = '/^news:(' . $newsgroup_name . '|' . $message_id . ')$/i';
 
   $user = '[a-zA-Z0-9' . $LINK_ICHARS . '_\-\.\+\^!#\$%&*+\/\=\?\`\|\{\}~\'\[\]]+';
-  $email_pattern = '/^mailto:' . $user . '@'.'(?:' . $domain . '|' . $ipv4 . '|' . $ipv6 . '|localhost)' . $query . '?$/';
+  $email_pattern = '/^mailto:' . $user . '@' . '(?:' . $domain . '|' . $ipv4 . '|' . $ipv6 . '|localhost)' . $query . '?$/';
 
   if (strpos($text, '<front>') === 0) {
     return LINK_FRONT;
