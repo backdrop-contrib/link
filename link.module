@@ -654,31 +654,31 @@ function _link_parse_str($query) {
 function link_theme() {
   return array(
     'link_formatter_link_default' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_plain' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_absolute' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_domain' => array(
-      'variables' => array('element' => NULL, 'display' => NULL),
+      'variables' => array('element' => NULL, 'display' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_title_plain' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_url' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_short' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_label' => array(
       'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_formatter_link_separate' => array(
-      'variables' => array('element' => NULL),
+      'variables' => array('element' => NULL, 'field' => NULL),
     ),
     'link_field' => array(
       'render element' => 'element',
