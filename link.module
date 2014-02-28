@@ -712,6 +712,7 @@ function theme_link_field($vars) {
   if (!empty($element['attributes']['title'])) {
     $output .= '<div class="link-attributes">' . drupal_render($element['attributes']['title']) . '</div>';
   }
+  $output .= drupal_render_children($element);
   return $output;
 }
 
