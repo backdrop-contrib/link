@@ -435,6 +435,9 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   if (empty($item['url']) && empty($item['title'])) {
     return;
   }
+  if (empty($item['html'])) {
+    $item['html'] = FALSE;
+  }
 
   // Replace URL tokens.
   $entity_type = $instance['entity_type'];
@@ -923,14 +926,13 @@ function theme_link_formatter_link_default($vars) {
   if (isset($link_options['attributes']['class'])) {
     $link_options['attributes']['class'] = array($link_options['attributes']['class']);
   }
-
   // Display a normal link if both title and URL are available.
   if (!empty($vars['element']['title']) && !empty($vars['element']['url'])) {
     return l($vars['element']['title'], $vars['element']['url'], $link_options);
   }
   // If only a title, display the title.
   elseif (!empty($vars['element']['title'])) {
-    return check_plain($vars['element']['title']);
+    return $link_options['html'] ? $vars['element']['title'] : check_plain($vars['element']['title']);
   }
   elseif (!empty($vars['element']['url'])) {
     return l($vars['element']['title'], $vars['element']['url'], $link_options);
