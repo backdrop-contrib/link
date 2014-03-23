@@ -642,7 +642,7 @@ function _link_parse_str($query) {
 
   $pairs = explode('&', $query);
   foreach ($pairs as $pair) {
-    $name_value = explode('=', $pair);
+    $name_value = explode('=', $pair, 2);
     $name = urldecode($name_value[0]);
     $value = isset($name_value[1]) ? urldecode($name_value[1]) : NULL;
     $query_array[$name] = $value;
