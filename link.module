@@ -374,7 +374,9 @@ function _link_load($field, $item, $instance) {
  */
 function _link_process(&$item, $delta = 0, $field, $entity) {
   // Trim whitespace from URL.
-  $item['url'] = trim($item['url']);
+  if (!empty($item['url'])) {
+    $item['url'] = trim($item['url']);
+  }
 
   // If no attributes are set then make sure $item['attributes'] is an empty
   // array, so $field['attributes'] can override it.
