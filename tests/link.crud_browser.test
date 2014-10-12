@@ -143,7 +143,7 @@ class LinkUITest extends DrupalWebTestcase {
       );
       $this->drupalPost(NULL, $edit, t('Save'));
       if ($input['type'] == self::LINK_INPUT_TYPE_BAD_URL) {
-        $this->assertRaw(t('The value provided for %field is not a valid URL.', array('%field' => $name)), 'Not a valid URL: ' . $input['href']);
+        $this->assertRaw(t('The value %value provided for %field is not a valid URL.', array('%field' => $name, '%value' => trim($input['href']))), 'Not a valid URL: ' . $input['href']);
         continue;
       }
       else {

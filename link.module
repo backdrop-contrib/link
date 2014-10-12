@@ -406,7 +406,10 @@ function _link_validate(&$item, $delta, $field, $entity, $instance, $langcode, &
     if (link_validate_url(trim($item['url'])) == FALSE) {
       $errors[$field['field_name']][$langcode][$delta][] = array(
         'error' => 'link_required',
-        'message' => t('The value provided for %field is not a valid URL.', array('%field' => $instance['label'])),
+        'message' => t('The value %value provided for %field is not a valid URL.', array(
+          '%value' => trim($item['url']),
+          '%field' => $instance['label'],
+        )),
         'error_element' => array('url' => TRUE, 'title' => FALSE),
       );
     }
