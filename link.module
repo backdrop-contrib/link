@@ -1380,7 +1380,20 @@ function link_field_item_property_info() {
     'label' => t('The URL of the link.'),
     'setter callback' => 'entity_property_verbatim_set',
   );
+  $properties['attributes'] = array(
+    'type' => 'struct',
+    'label' => t('The attributes of the link.'),
+    'setter callback' => 'entity_property_verbatim_set',
+    'getter callback' => 'link_attribute_property_get',
+  );
   return $properties;
+}
+
+/**
+ * Entity property info getter callback for link attributes.
+ */
+function link_attribute_property_get($data, array $options, $name, $type, $info) {
+  return isset($data[$name]) ? array_filter($data[$name]) : array();
 }
 
 /**
