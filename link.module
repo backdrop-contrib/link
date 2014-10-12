@@ -46,6 +46,7 @@ function link_field_info() {
         'url' => 0,
         'title' => 'optional',
         'title_value' => '',
+        'title_label_use_field_label' => FALSE,
         'title_maxlength' => 128,
         'enable_tokens' => 1,
         'display' => array(
@@ -105,6 +106,13 @@ function link_field_instance_settings_form($field, $instance) {
     '#title' => t('Static title'),
     '#default_value' => isset($instance['settings']['title_value']) ? $instance['settings']['title_value'] : '',
     '#description' => t('This title will always be used if &ldquo;Static Title&rdquo; is selected above.'),
+  );
+
+  $form['title_label_use_field_label'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use field label as the label for the title field'),
+    '#default_value' => isset($instance['settings']['title_label_use_field_label']) ? $instance['settings']['title_label_use_field_label'] : FALSE,
+    '#description' => t('If this is checked the field label will be hidden.'),
   );
 
   $form['title_maxlength'] = array(
@@ -182,6 +190,11 @@ function link_field_instance_settings_form($field, $instance) {
     '#default_value' => !isset($instance['settings']['rel_remove']) ? 'default' : $instance['settings']['rel_remove'],
     '#description' => t('Turn on/off if rel attribute should be removed automatically, if user given link is internal/external'),
     '#options' => $rel_remove_options,
+  );
+  $form['attributes']['configurable_class'] = array(
+    '#title' => t("Allow the user to enter a custom link class per link"),
+    '#type' => 'checkbox',
+    '#default_value' => empty($instance['settings']['attributes']['configurable_class']) ? '' : $instance['settings']['attributes']['configurable_class'],
   );
   $form['attributes']['class'] = array(
     '#type' => 'textfield',
@@ -584,6 +597,16 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
     $item['attributes']['title'] = token_replace($item['attributes']['title'], array($entity_token_type => $entity_loaded));
     $item['attributes']['title'] = filter_xss($item['attributes']['title'], array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
+  // Handle classes
+  if (!empty($item['attributes']['class'])){
+    $classes = explode(' ', $item['attributes']['class']);
+    foreach ($classes as &$class) {
+      $class = drupal_html_class($class);
+    }
+    $item['attributes']['class'] = implode(' ', $classes);
+  }
+  unset($item['attributes']['configurable_class']);
+
   // Remove title attribute if it's equal to link text.
   if (isset($item['attributes']['title']) && $item['attributes']['title'] == $item['title']) {
     unset($item['attributes']['title']);
@@ -715,6 +738,9 @@ function theme_link_field($vars) {
   if (!empty($element['attributes']['title'])) {
     $output .= '<div class="link-attributes">' . drupal_render($element['attributes']['title']) . '</div>';
   }
+  if (!empty($element['attributes']['class'])) {
+    $output .= '<div class="link-attributes">'. drupal_render($element['attributes']['class']) .'</div>';
+  }
   $output .= drupal_render_children($element);
   return $output;
 }
@@ -763,10 +789,21 @@ function link_field_process($element, $form_state, $complete_form) {
     '#default_value' => isset($element['#value']['url']) ? $element['#value']['url'] : NULL,
   );
   if ($settings['title'] !== 'none' && $settings['title'] !== 'value') {
+    // Figure out the label of the title field.
+    if (!empty($settings['title_label_use_field_label'])) {
+      // Use the element label as the title field label.
+      $title_label = $element['#title'];
+      // Hide the field label because there is no need for the duplicate labels.
+      $element['#title_display'] = 'invisible';
+    }
+    else {
+      $title_label = t('Title');
+    }
+
     $element['title'] = array(
       '#type' => 'textfield',
       '#maxlength' => $settings['title_maxlength'],
-      '#title' => t('Title'),
+      '#title' => $title_label,
       '#description' => t('The link title is limited to @maxlength characters maximum.', array('@maxlength' => $settings['title_maxlength'])),
       '#required' => ($settings['title'] == 'required' && (($element['#delta'] == 0 && $element['#required']) || !empty($element['#value']['url']))) ? TRUE : FALSE,
       '#default_value' => isset($element['#value']['title']) ? $element['#value']['title'] : NULL,
@@ -794,6 +831,15 @@ function link_field_process($element, $form_state, $complete_form) {
       '#title' => t('Link "title" attribute'),
       '#default_value' => isset($attributes['title']) ? $attributes['title'] : '',
       '#field_prefix' => 'title = "',
+      '#field_suffix' => '"',
+    );
+  }
+  if (!empty($settings['attributes']['configurable_class']) && $settings['attributes']['configurable_class'] == 1) {
+    $element['attributes']['class'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Custom link class'),
+      '#default_value' => isset($attributes['class']) ? $attributes['class'] : '',
+      '#field_prefix' => 'class = "',
       '#field_suffix' => '"',
     );
   }
