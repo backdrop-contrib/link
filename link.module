@@ -53,6 +53,7 @@ function link_field_info() {
           'url_cutoff' => 80,
         ),
         'validate_url' => 1,
+        'absolute_url' => 1,
       ),
       'default_widget' => 'link_field',
       'default_formatter' => 'link_default',
@@ -69,6 +70,13 @@ function link_field_info() {
 function link_field_instance_settings_form($field, $instance) {
   $form = array(
     '#element_validate' => array('link_field_settings_form_validate'),
+  );
+
+  $form['absolute_url'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Absolute URL'),
+    '#default_value' => isset($instance['settings']['absolute_url']) && ($instance['settings']['absolute_url'] !== '') ? $instance['settings']['absolute_url'] : TRUE,
+    '#description' => t('If checked, the URL will always render as an absolute URL.'),
   );
 
   $form['validate_url'] = array(
@@ -482,13 +490,12 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   $url_parts = _link_parse_url($url);
 
   if (!empty($url_parts['url'])) {
-    $item['url'] = url($url_parts['url'],
-      array(
-        'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
-        'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
-        'absolute' => TRUE,
-        'html' => TRUE,
-      )
+    $item['url'] = $url_parts['url'];
+    $item += array(
+      'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
+      'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
+      'absolute' => !empty($instance['settings']['absolute_url']),
+      'html' => TRUE,
     );
   }
 
@@ -501,7 +508,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
       array(
         'query' => isset($url_parts['query']) ? $url_parts['query'] : NULL,
         'fragment' => isset($url_parts['fragment']) ? $url_parts['fragment'] : NULL,
-        'absolute' => TRUE,
+        'absolute' => !empty($instance['settings']['absolute_url']),
       )
     );
   }
@@ -526,7 +533,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
     $title = '';
   }
 
-  // Replace tokens.
+  // Replace title tokens.
   if ($title && ($instance['settings']['title'] == 'value' || $instance['settings']['enable_tokens'])) {
     // Load the entity if necessary for entities in views.
     if (isset($entity->{$property_id})) {
