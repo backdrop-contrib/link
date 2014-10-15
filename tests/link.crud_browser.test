@@ -76,8 +76,8 @@ class LinkUITest extends DrupalWebTestcase {
     //$this->drupalGet('node/add');
     $this->drupalGet('node/add/page');
     $field_name = 'field_' . $name;
-    $this->assertField('edit-field-'. $name .'-und-0-title', 'Title found');
-    $this->assertField('edit-field-'. $name .'-und-0-url', 'URL found');
+    $this->assertField('edit-field-' . $name . '-und-0-title', 'Title found');
+    $this->assertField('edit-field-' . $name . '-und-0-url', 'URL found');
 
     $input_test_cases = array(
       array(
@@ -124,12 +124,12 @@ class LinkUITest extends DrupalWebTestcase {
       ),
     );
     $test_case = array(
-      'href' => 'www.example.com/'. $this->randomName(),
+      'href' => 'www.example.com/' . $this->randomName(),
       'label' => $this->randomName(),
       'msg' => 'Link found',
       'type' => self::LINK_INPUT_TYPE_GOOD,
     );
-    $test_case['expected_href'] = 'http://'. $test_case['href'];
+    $test_case['expected_href'] = 'http://' . $test_case['href'];
     $input_test_cases[] = $test_case;
 
     foreach ($input_test_cases as $input) {
@@ -147,13 +147,13 @@ class LinkUITest extends DrupalWebTestcase {
         continue;
       }
       else {
-        $this->assertRaw(t(' has been created.',
+        $this->assertRaw(' ' . t('has been created.',
                            array('@type' => 'Basic Page', '%title' => $edit['title'])),
                          'Page created: ' . $input['href']);
       }
       $url = $this->getUrl();
 
-      // change to anonym user
+      // change to Anonymous user.
       $this->drupalLogout();
 
       $this->drupalGet($url);
@@ -162,12 +162,11 @@ class LinkUITest extends DrupalWebTestcase {
       // us and let us know it's broken.
       $this->assertFalse(libxml_use_internal_errors(TRUE));
       if (isset($input['expected_href'])) {
-        $path = '//a[@href="'. $input['expected_href'] .'" and text()="'. $input['label'] .'"]';
+        $path = '//a[@href="' . $input['expected_href'] . '" and text()="' . $input['label'] . '"]';
       }
       else {
-        $path = '//a[@href="'. $input['href'] .'" and text()="'. $input['label'] .'"]';
+        $path = '//a[@href="' . $input['href'] . '" and text()="' . $input['label'] . '"]';
       }
-      //$this->pass(htmlentities($path));
       $elements = $this->xpath($path);
       libxml_use_internal_errors(FALSE);
       $this->assertIdentical(isset($elements[0]), $input['type'] == self::LINK_INPUT_TYPE_GOOD, $input['msg']);
@@ -185,7 +184,7 @@ class LinkUITest extends DrupalWebTestcase {
 
     // create field
     $name = strtolower($this->randomName());
-    $field_name = 'field_'. $name;
+    $field_name = 'field_' . $name;
     $edit = array(
       'fields[_add_new_field][label]' => $name,
       'fields[_add_new_field][field_name]' => $name,
@@ -196,7 +195,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->drupalPost(NULL, array(), t('Save field settings'));
     $this->drupalPost(NULL, array(
       'instance[settings][title]' => 'value',
-      'instance[settings][title_value]' => '<strong>'. $name .'</strong>'), t('Save settings'));
+      'instance[settings][title_value]' => '<strong>' . $name . '</strong>'), t('Save settings'));
 
     // Is field created?
     $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
@@ -221,7 +220,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->drupalLogout();
     $this->drupalGet($url);
 
-    $this->assertRaw(l('<strong>'. $name .'</strong>', $input['href'], array('html' => TRUE)));
+    $this->assertRaw(l('<strong>' . $name . '</strong>', $input['href'], array('html' => TRUE)));
   }
   
   /**
@@ -233,7 +232,7 @@ class LinkUITest extends DrupalWebTestcase {
 
     // create field
     $name = strtolower($this->randomName());
-    $field_name = 'field_'. $name;
+    $field_name = 'field_' . $name;
     $edit = array(
       'fields[_add_new_field][label]' => $name,
       'fields[_add_new_field][field_name]' => $name,
@@ -302,7 +301,7 @@ class LinkUITest extends DrupalWebTestcase {
     _field_info_collate_fields(TRUE);
     $instances = field_info_instances('node', 'page');
 
-    $instance = $instances['field_'. $name];
+    $instance = $instances['field_' . $name];
     $this->assertFalse($instance['required'], 'Make sure field is not required.');
     $this->assertEqual($instance['settings']['title'], 'optional', 'Title should be optional by default.');
     $this->assertTrue($instance['settings']['validate_url'], 'Make sure validation is on.');

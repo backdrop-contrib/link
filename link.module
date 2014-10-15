@@ -133,14 +133,14 @@ function link_field_instance_settings_form($field, $instance) {
   );
 
   if (module_exists('token')) {
-    // Add token module replacements fields
+    // Add token module replacements fields.
     $form['enable_tokens'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow user-entered tokens'),
       '#default_value' => isset($instance['settings']['enable_tokens']) ? $instance['settings']['enable_tokens'] : 1,
       '#description' => t('Checking will allow users to enter tokens in URLs and Titles on the entity edit form. This does not affect the field settings on this page.'),
     );
-    
+
     $entity_info = entity_get_info($instance['entity_type']);
     $form['tokens_help'] = array(
       '#theme' => 'token_tree',
@@ -372,7 +372,7 @@ function _link_load($field, $item, $instance) {
 /**
  * Prepares the item attributes and url for storage.
  */
-function _link_process(&$item, $delta = 0, $field, $entity) {
+function _link_process(&$item, $delta, $field, $entity) {
   // Trim whitespace from URL.
   if (!empty($item['url'])) {
     $item['url'] = trim($item['url']);
@@ -431,10 +431,11 @@ function _link_validate(&$item, $delta, $field, $entity, $instance, $langcode, &
     );
   }
   // In a totally bizzaro case, where URLs and titles are optional but the field is required, ensure there is at least one link.
-  if ($instance['settings']['url'] === 'optional' && $instance['settings']['title'] === 'optional' && (strlen(trim($item['url'])) !== 0 || strlen(trim($item['title'])) !== 0)) {
+  if ($instance['settings']['url'] === 'optional' && $instance['settings']['title'] === 'optional'
+      && (strlen(trim($item['url'])) !== 0 || strlen(trim($item['title'])) !== 0)) {
     $optional_field_found = TRUE;
   }
-  // Require entire field
+  // Require entire field.
   if ($instance['settings']['url'] === 'optional' && $instance['settings']['title'] === 'optional' && $instance['required'] == 1 && !$optional_field_found && isset($instance['id'])) {
     $errors[$field['field_name']][$langcode][$delta][] = array(
       'error' => 'link_required',
@@ -447,13 +448,13 @@ function _link_validate(&$item, $delta, $field, $entity, $instance, $langcode, &
 /**
  * Clean up user-entered values for a link field according to field settings.
  *
- * @param $item
+ * @param array $item 
  *   A single link item, usually containing url, title, and attributes.
- * @param $delta
+ * @param int $delta 
  *   The delta value if this field is one of multiple fields.
- * @param $field
+ * @param array $field 
  *   The CCK field definition.
- * @param $entity
+ * @param object $entity 
  *   The entity containing this link.
  */
 function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
@@ -560,7 +561,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
 
   // Unserialize attributtes array if it has not been unserialized yet.
   if (!is_array($item['attributes'])) {
-    $item['attributes'] = (array)unserialize($item['attributes']);
+    $item['attributes'] = (array) unserialize($item['attributes']);
   }
 
   // Add default attributes.
@@ -609,8 +610,8 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
     $item['attributes']['title'] = token_replace($item['attributes']['title'], array($entity_token_type => $entity_loaded));
     $item['attributes']['title'] = filter_xss($item['attributes']['title'], array('b', 'br', 'code', 'em', 'i', 'img', 'span', 'strong', 'sub', 'sup', 'tt', 'u'));
   }
-  // Handle classes
-  if (!empty($item['attributes']['class'])){
+  // Handle attribute classes.
+  if (!empty($item['attributes']['class'])) {
     $classes = explode(' ', $item['attributes']['class']);
     foreach ($classes as &$class) {
       $class = drupal_html_class($class);
@@ -635,7 +636,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
  * @param string $url
  *   URL to parse.
  *
- * @return Array
+ * @return array
  *   Array of url pieces - only 'url', 'query', and 'fragment'.
  */
 function _link_parse_url($url) {
@@ -656,7 +657,9 @@ function _link_parse_url($url) {
 }
 
 /**
- * Bacause parse_str replaces the following characters in query parameters name
+ * Replaces the PHP parse_str() function.
+ *
+ * Because parse_str replaces the following characters in query parameters name
  * in order to maintain compability with deprecated register_globals directive:
  *
  *   - chr(32) ( ) (space)
@@ -667,7 +670,7 @@ function _link_parse_url($url) {
  * @param string $query
  *   Query to parse.
  *
- * @return Array
+ * @return array
  *   Array of query parameters.
  *
  * @see http://php.net/manual/en/language.variables.external.php#81080
@@ -751,7 +754,7 @@ function theme_link_field($vars) {
     $output .= '<div class="link-attributes">' . drupal_render($element['attributes']['title']) . '</div>';
   }
   if (!empty($element['attributes']['class'])) {
-    $output .= '<div class="link-attributes">'. drupal_render($element['attributes']['class']) .'</div>';
+    $output .= '<div class="link-attributes">' . drupal_render($element['attributes']['class']) . '</div>';
   }
   $output .= drupal_render_children($element);
   return $output;
@@ -1013,7 +1016,7 @@ function theme_link_formatter_link_plain($vars) {
 }
 
 /**
- * Formats a link as an absolute URL
+ * Formats a link as an absolute URL.
  */
 function theme_link_formatter_link_absolute($vars) {
   $absolute = array('absolute' => TRUE);
@@ -1082,10 +1085,8 @@ function theme_link_formatter_link_separate($vars) {
   unset($link_options['url']);
   $title = empty($vars['element']['title']) ? '' : check_plain($vars['element']['title']);
 
-  /**
-   * @TODO static html markup looks not very elegant
-   * needs smarter output solution and an optional title/url seperator
-   */
+  // @TODO static html markup looks not very elegant
+  // needs smarter output solution and an optional title/url seperator
   $url_parts = _link_parse_url($vars['element']['url']);
   $output = '';
   $output .= '<div class="link-item ' . $class . '">';
@@ -1099,6 +1100,8 @@ function theme_link_formatter_link_separate($vars) {
 
 /**
  * Implements hook_token_list().
+ *
+ * @TODO: hook_token_list no longer exists - this should change to hook_token_info().
  */
 function link_token_list($type = 'all') {
   if ($type === 'field' || $type === 'all') {
@@ -1110,6 +1113,11 @@ function link_token_list($type = 'all') {
   }
 }
 
+/**
+ * Implements hook_token_values().
+ *
+ * @TODO: hook_token_values no longer exists - this should change to hook_tokens().
+ */
 function link_token_values($type, $object = NULL) {
   if ($type === 'field') {
     $item = $object[0];
@@ -1139,6 +1147,7 @@ function link_views_api() {
  * protocol specified
  *
  * @param string $url
+ *   The url entered by the user.
  * @param string $protocol
  *   The protocol to be prepended to the url if one is not specified
  */
@@ -1169,6 +1178,7 @@ function link_cleanup_url($url, $protocol = 'http') {
  * addresses following the RFC 2368 standard for mailto address formation.
  *
  * @param string $text
+ *   Url to be validated.
  * 
  * @return mixed
  *   Returns boolean FALSE if the URL is not valid. On success, returns one of
@@ -1238,7 +1248,7 @@ function link_validate_url($text) {
   $allowed_protocols = variable_get('filter_allowed_protocols', array('http', 'https', 'ftp', 'news', 'nntp', 'telnet', 'mailto', 'irc', 'ssh', 'sftp', 'webcal'));
   $LINK_DOMAINS = _link_domains();
 
-  // Starting a parenthesis group with (?: means that it is grouped, but is not captured
+  // Starting a parenthesis group with (?: means that it is grouped, but is not captured.
   $protocol = '((?:' . implode("|", $allowed_protocols) . '):\/\/)';
   $authentication = "(?:(?:(?:[\w\.\-\+!$&'\(\)*\+,;=" . $LINK_ICHARS . "]|%[0-9a-f]{2})+(?::(?:[\w" . $LINK_ICHARS . "\.\-\+%!$&'\(\)*\+,;=]|%[0-9a-f]{2})*)?)?@)";
   $domain = '(?:(?:[a-z0-9' . $LINK_ICHARS_DOMAIN . ']([a-z0-9' . $LINK_ICHARS_DOMAIN . '\-_\[\]])*)(\.(([a-z0-9' . $LINK_ICHARS_DOMAIN . '\-_\[\]])+\.)*(' . $LINK_DOMAINS . '|[a-z]{2}))?)';
@@ -1348,7 +1358,7 @@ function link_field_settings_form() {
 /**
  * Additional callback to adapt the property info of link fields.
  * 
- * @see entity_metadata_field_entity_property_info().
+ * @see entity_metadata_field_entity_property_info()
  */
 function link_field_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
