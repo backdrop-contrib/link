@@ -12,6 +12,7 @@ files[] = tests/link.attribute.test
 files[] = tests/link.crud.test
 files[] = tests/link.crud_browser.test
 files[] = tests/link.token.test
+files[] = tests/link.entity_token.test
 files[] = tests/link.validate.test
 
 ; Views Handlers
