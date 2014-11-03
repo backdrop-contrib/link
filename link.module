@@ -614,7 +614,7 @@ function _link_sanitize(&$item, $delta, &$field, $instance, &$entity) {
   if (!empty($item['attributes']['class'])) {
     $classes = explode(' ', $item['attributes']['class']);
     foreach ($classes as &$class) {
-      $class = drupal_html_class($class);
+      $class = drupal_clean_css_identifier($class);
     }
     $item['attributes']['class'] = implode(' ', $classes);
   }
