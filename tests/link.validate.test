@@ -363,6 +363,10 @@ class LinkValidateUrlLight extends DrupalWebTestCase {
       'group' => 'Link',
     );
   }
+  
+  function setUp() {
+    parent::setUp('link');
+  }
 
   /**
    * Translates the LINK type constants to english for display and debugging of tests
