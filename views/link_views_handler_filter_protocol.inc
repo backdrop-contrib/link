@@ -61,7 +61,7 @@ class link_views_handler_filter_protocol extends views_handler_filter_string {
         '#type' => 'select',
         '#title' => t('Protocol'),
         '#default_value' => $this->value,
-        '#options' => drupal_map_assoc(variable_get('filter_allowed_protocols', array('http', 'https', 'ftp', 'news', 'nntp', 'telnet', 'mailto', 'irc', 'ssh', 'sftp', 'webcal'))),
+        '#options' => backdrop_map_assoc(config_get('link.settings', 'filter_allowed_protocols')),
         '#multiple' => 1,
         '#size' => 4,
         '#description' => t('The protocols displayed here are those globally available. You may add more protocols by modifying the <em>filter_allowed_protocols</em> variable in your installation.'),

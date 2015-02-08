@@ -1,6 +1,6 @@
 name = Link
 description = Defines simple link field types.
-core = 7.x
+backdrop = 1.x
 package = Fields
 
 files[] = link.module

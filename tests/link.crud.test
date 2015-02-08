@@ -5,7 +5,7 @@
  * Basic CRUD simpletests for the link module, based off of content.crud.test in CCK.
  */
 
-class LinkContentCrudTest extends DrupalWebTestCase {
+class LinkContentCrudTest extends BackdropWebTestCase {
 
   public static function getInfo() {
     return array(

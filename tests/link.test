@@ -5,7 +5,7 @@
  * Link base test file - contains common functions for testing links.
  */
 
-class LinkBaseTestClass extends DrupalWebTestCase {
+class LinkBaseTestClass extends BackdropWebTestCase {
   protected $permissions = array(
     'access content',
     'administer content types',
@@ -23,7 +23,7 @@ class LinkBaseTestClass extends DrupalWebTestCase {
     $modules[] = 'field_ui';
     $modules[] = 'link';
     parent::setUp($modules);
-    
+
     $this->web_user = $this->drupalCreateUser($this->permissions);
     $this->drupalLogin($this->web_user);
   }

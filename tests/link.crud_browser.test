@@ -8,7 +8,7 @@
 /**
  * Testing that users can not input bad URLs or labels
  */
-class LinkUITest extends DrupalWebTestcase {
+class LinkUITest extends BackdropWebTestcase {
 
   /**
    * Link supposed to be good
@@ -222,7 +222,7 @@ class LinkUITest extends DrupalWebTestcase {
 
     $this->assertRaw(l('<strong>' . $name . '</strong>', $input['href'], array('html' => TRUE)));
   }
-  
+
   /**
    * Testing that if you have the title but no url, the title is not sanitized twice.
    */
@@ -247,7 +247,7 @@ class LinkUITest extends DrupalWebTestcase {
 
     // Is field created?
     $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
-    
+
     // create page form
     $this->drupalGet('node/add/page');
     $this->assertField($field_name . '[und][0][url]', 'URL found');
@@ -265,7 +265,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->drupalPost(NULL, $edit, t('Save'));
 
     $url = $this->getUrl();
-    
+
     // change to anonymous user
     $this->drupalLogout();
     $this->drupalGet($url);
@@ -312,7 +312,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->assertFalse($instance['settings']['attributes']['class'], 'By default, no class should be set.');
     $this->assertFalse($instance['settings']['title_value'], 'By default, no title should be set.');
   }
-  
+
   /**
    * If we're creating a new field and just hit 'save' on the default options, we want to make
    * sure they are set to the expected results.
@@ -356,7 +356,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->assertFalse($instance['settings']['attributes']['rel'], 'Rel should be blank by default.');
     $this->assertEqual($instance['settings']['attributes']['class'], $link_class_name, 'One class should be set.');
     $this->assertFalse($instance['settings']['title_value'], 'By default, no title should be set.');
-    
+
     // Now, let's create a node with this field and make sure the link shows up:
     // create page form
     $field_name = 'field_' . $name;
@@ -376,7 +376,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->drupalPost(NULL, $edit, t('Save'));
 
     $url = $this->getUrl();
-    
+
     // change to anonymous user
     $this->drupalLogout();
     $this->drupalGet($url);
@@ -428,7 +428,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->assertFalse($instance['settings']['attributes']['rel'], 'Rel should be blank by default.');
     $this->assertEqual($instance['settings']['attributes']['class'], $link_class_name, 'Two classes should be set.');
     $this->assertFalse($instance['settings']['title_value'], 'By default, no title should be set.');
-    
+
     // Now, let's create a node with this field and make sure the link shows up:
     // create page form
     $field_name = 'field_' . $name;
@@ -448,7 +448,7 @@ class LinkUITest extends DrupalWebTestcase {
     $this->drupalPost(NULL, $edit, t('Save'));
 
     $url = $this->getUrl();
-    
+
     // change to anonymous user
     $this->drupalLogout();
     $this->drupalGet($url);
