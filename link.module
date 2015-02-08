@@ -18,6 +18,17 @@ define('LINK_TARGET_TOP', '_top');
 define('LINK_TARGET_USER', 'user');
 
 /**
+* Implements hook_config_info().
+*/
+function link_config_info() {
+  $prefixes['link.settings'] = array(
+    'label' => t('Settings'),
+    'group' => t('Link'),
+  );
+  return $prefixes;
+}
+
+/**
  * Maximum URLs length - needs to match value in link.install.
  */
 define('LINK_URL_MAX_LENGTH', 2048);
