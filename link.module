@@ -750,7 +750,7 @@ function link_theme() {
  * Formats a link field widget.
  */
 function theme_link_field($vars) {
-  backdrop_add_css(backdrop_get_path('module', 'link') . '/link.css');
+  backdrop_add_css(backdrop_get_path('module', 'link') . '/css/link.css');
   $element = $vars['element'];
   // Prefix single value link fields with the name of the field.
   if (empty($element['#field']['multiple'])) {
