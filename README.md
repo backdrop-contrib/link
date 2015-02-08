@@ -1,7 +1,7 @@
 Link
 ====
 
-The link module can be count to the top 50 modules in Drupal installations and provides a standard custom content field for links. With this module links can be added easily to any content types and profiles and include advanced validating and different ways of storing internal or external links and URLs. It also supports additional link text title, site wide tokens for titles and title attributes, target attributes, css class attribution, static repeating values, input conversion, and many more.
+Link module allows links to be added easily to any content types and profiles and include advanced validating and different ways of storing internal or external links and URLs. It also supports additional link text title, site wide tokens for titles and title attributes, target attributes, css class attribution, static repeating values, input conversion, and many more.
 
 Note: Since some misleading user reports we need to clarify here - Link module is NOT about to add links to any menus or the navigation nor primary/secondary menu. This can be done with default menu module (part of Backdrop core). The Link module provides an additional custom field for storing and validating links to be added with any content type, which means another input block additional to your text-body, title, image and any other input you can make on new content creation.
 
