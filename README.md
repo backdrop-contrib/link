@@ -1,7 +1,10 @@
 Link
 ====
 
-**Link module was moved into Backdrop core 1.2.0. Use of this module is no longer necessary and no further changes will be made here. If you would like to report a bug or request against Link, file an issue in the main Backdrop CMS core repository at https://github.com/backdrop/backdrop-issues.**
+**Important note**: Link module was moved into Backdrop core in version 1.2.0. 
+Use of this module is no longer necessary and no further changes will be made 
+here. If you would like to report a bug or feature request against Link module, 
+file an issue in the main Backdrop CMS core repository at https://github.com/backdrop/backdrop-issues.
 
 Link module allows links to be added easily to any content types and profiles and include advanced validating and different ways of storing internal or external links and URLs. It also supports additional link text title, site wide tokens for titles and title attributes, target attributes, css class attribution, static repeating values, input conversion, and many more.
 
@@ -42,7 +45,7 @@ complete text.
 Current Maintainers
 -------------------
 
-This module is currently seeking maintainers.
+- none
 
 Credits
 -------
